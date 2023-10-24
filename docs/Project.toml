@@ -1,0 +1,3 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+MyOscar = "c0c86ff5-60fd-429e-92dd-1bddbb4390ec"
