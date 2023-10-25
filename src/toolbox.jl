@@ -9,7 +9,9 @@ using Oscar;
 using Plots; gr();
 using DataFrames;
 using CSV;
-#using SymPy;
+using Conda;
+using PyCall;
+using SymPy;
 using LinearAlgebra;
 using Combinatorics;
 
