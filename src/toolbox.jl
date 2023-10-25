@@ -9,7 +9,7 @@ using Oscar;
 using Plots; gr();
 using DataFrames;
 using CSV;
-using SymPy;
+#using SymPy;
 using LinearAlgebra;
 using Combinatorics;
 
