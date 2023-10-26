@@ -1,14 +1,7 @@
 # This is for all functions using sympy
 
-ENV["PYTHON"] = ""
-pkg"build PyCall"
-#using Conda
-#Conda.add("sympy")
-
-
-#using PyCall
-#pyimport("sympy")
-
+using PyCall
+pyimport("sympy")
 using SymPy;
 
 
