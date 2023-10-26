@@ -5,13 +5,25 @@
 
 # load required packages
 
+using Pkg;
+ENV["PYTHON"] = ""
+pkg"build PyCall"
+using Conda
+Conda.add("sympy")
+
+
+#using PyCall
+#pyimport("sympy")
+
+
+#using Conda;
+#using PyCall;
+#using SymPy;
+
 using Oscar;
 using Plots; gr();
 using DataFrames;
 using CSV;
-using Conda;
-using PyCall;
-using SymPy;
 using LinearAlgebra;
 using Combinatorics;
 
@@ -76,7 +88,7 @@ end;
 
 function define_blowup_pp()
     ray_generators = [[1,0], [0,-1], [-1,0], [0,1], [1,1]];
-    max_cones = [[4,5], [5,1], [1,2], [2,3], [3,4]];
+    max_cones = [[4,5], [5,1Sym], [1,2], [2,3], [3,4]];
     blowup_pp = normal_toric_variety(ray_generators, max_cones, non_redundant = true)
     
     return blowup_pp
