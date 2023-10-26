@@ -29,8 +29,8 @@ export search_nontemptings_via_boundary_condition
 export eliminate_faces_as_temptings
 export get_temptings_as_primitive_collections
 
-include("sympy.jl")
+#include("sympy.jl")
 
-export evaluate_cartier_data
+#export evaluate_cartier_data
 
 end
