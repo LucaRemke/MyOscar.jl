@@ -397,7 +397,7 @@ end;
 function get_immaculate_regions(variety::NormalToricVariety)
     rays_var = rays(variety)
     nrays_var = nrays(variety)
-    dim_fan = dim(fan(variety))
+    dim_pic = rank(picard_group(variety))
     pi = show_generators_and_relations_of_classgroup(variety; print_output=false)
     temptings = get_temptings_via_bruteforce(variety)
     
@@ -405,9 +405,9 @@ function get_immaculate_regions(variety::NormalToricVariety)
     
     for temp in temptings
         base_vec_t = [in(i, temp) ? -1 : 0 for i in 1:nrays_var]
-        vertice_t = reshape(pi*base_vec_t,1,dim_fan)
+        vertice_t = reshape(pi*base_vec_t,1,dim_pic)
         
-        gens_t = Matrix{Int}(undef, 0, dim_fan)
+        gens_t = Matrix{Int}(undef, 0, dim_pic)
         for i in 1:nrays_var
             v_i = (base_vec_t[i] == -1) ? 
                 [j == i ? -1 : 0 for j in 1:nrays_var] : [j == i ? 1 : 0 for j in 1:nrays_var]
