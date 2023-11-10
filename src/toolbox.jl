@@ -75,7 +75,7 @@ end;
 
 function define_blowup_pp()
     ray_generators = [[1,0], [0,-1], [-1,0], [0,1], [1,1]];
-    max_cones = [[4,5], [5,1Sym], [1,2], [2,3], [3,4]];
+    max_cones = [[4,5], [5,1], [1,2], [2,3], [3,4]];
     blowup_pp = normal_toric_variety(ray_generators, max_cones, non_redundant = true)
     
     return blowup_pp
@@ -130,7 +130,7 @@ end;
 
 ####################
 # Convert a vector of vectors into a dataframe
-function convert_to_df(vec::Vector{Any})
+function convert_to_df(vec)
     matrix = transpose(hcat(vec...)) 
     df = DataFrame(matrix, :auto)
     
@@ -139,7 +139,7 @@ end;
 
 ####################
 # Sorts a vector of point clockwise around its centroid
-function sort_points_clockwise(points::Vector{Any})
+function sort_points_clockwise(points)
     centroid = [sum(p[1] for p in points) / length(points), sum(p[2] for p in points) / length(points)]
     angles = [atan(p[2] - centroid[2], p[1] - centroid[1]) for p in points]
     sorted_indices = sortperm(angles)
