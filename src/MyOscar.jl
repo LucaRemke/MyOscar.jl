@@ -3,9 +3,10 @@ module MyOscar
 include("toolbox.jl")
 
 export define_projective_space
+export define_projective_surface
 export define_hirzebruch_surface
 export define_ppp
-export define_blowup_pp
+export define_pentagon
 export define_hexagon
 
 export get_representative_of_divisor

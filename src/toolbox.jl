@@ -42,21 +42,25 @@ function define_projective_space(n::Int)
 end;
 
 ####################
+# The projective surface
+
+function define_projective_surface()
+    ray_generators = [[0,1], [-1,-1], [1,0]];
+    max_cones = [[1,2], [2,3], [3,1]];
+    p2 = normal_toric_variety(ray_generators, max_cones, non_redundant = true)
+    
+    return p2
+end;
+
+####################
 # The Hirzebruch surface
 
-function define_hirzebruch_surface(r::Int; kleinschmidt::Bool=false)    
-    
-    if kleinschmidt
-        ray_generators = [[0,1], [-r,-1], [1,0], [-1,0]]
-        max_cones = [[1,4], [4,2], [2,3], [3, 1]]
-    else
-        ray_generators = [[-1,r], [0,1], [1,0], [0,-1]]
-        max_cones = [[1,2], [2,3], [3,4], [4,1]]
-    end
-        
-    H = normal_toric_variety(ray_generators, max_cones, non_redundant = true)
-    
-    return H
+function define_hirzebruch_surface(r::Int)    
+    ray_generators = [[0,1], [-r,-1], [1,0], [-1,0]]
+    max_cones = [[1,4], [4,2], [2,3], [3,1]]
+    hr = normal_toric_variety(ray_generators, max_cones, non_redundant = true)
+
+    return hr
 end;
 
 ####################
@@ -71,22 +75,22 @@ function define_ppp()
 end;
 
 ####################
-# The blowup of P*P along cone(e1,e2)
+# The pentagon
 
-function define_blowup_pp()
-    ray_generators = [[1,0], [0,-1], [-1,0], [0,1], [1,1]];
-    max_cones = [[4,5], [5,1], [1,2], [2,3], [3,4]];
-    blowup_pp = normal_toric_variety(ray_generators, max_cones, non_redundant = true)
+function define_pentagon()
+    ray_generators = [[0,1], [-1,-1], [1,0], [-1,0], [0,-1]];
+    max_cones = [[1,4], [4,2], [2,5], [5,3], [3,1]];
+    pentagon = normal_toric_variety(ray_generators, max_cones, non_redundant = true)
     
-    return blowup_pp
+    return pentagon
 end;
     
 ####################
 # The hexagon
 
 function define_hexagon()
-    ray_generators = [[1,0], [0, 1], [-1, 1], [-1, 0], [0, -1], [1, -1]];
-    max_cones = [[1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 1]];
+    ray_generators = [[0,1], [-1,-1], [1,0], [-1,0], [0,-1], [1,1]];
+    max_cones = [[1,4], [4,2], [2,5], [5,3], [3,6], [6,1]];
     hexagon = normal_toric_variety(ray_generators, max_cones, non_redundant = true)
     
     return hexagon
@@ -274,10 +278,15 @@ end;
 
 # Function that checks if the input conditions characterizes the nef divisors in range
 ####################
-function check_nef_conditions(var::NormalToricVariety, range::UnitRange{Int64}, condition_func)
+function check_nef_conditions(var::NormalToricVariety, range::UnitRange{Int64}, condition_func; elements::Vector{Int64}=ones(Int, nrays(var)))
     check = true
     
     all_coeffs = generate_vectors(nrays(fan(var)), range)
+    
+    if elements != ones(Int, nrays(var))
+        all_coeffs = [v .* elements for v in all_coeffs]
+        all_coeffs = collect(Set(all_coeffs)) 
+    end
     
     for coeff in all_coeffs
         td = toric_divisor(var, coeff)
