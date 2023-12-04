@@ -20,7 +20,11 @@ export calculate_cartier_data
 export check_nef_conditions
 export calculate_nef_pair
 export get_immaculate_lb
-export get_immaculate_regions
+export get_maculate_regions
+export cutout_maculate_regions
+export plot_maculate_regions
+export plot3d_maculate_regions
+export print_maculate_region_info
 
 export plot_data
 export create_gif
@@ -29,6 +33,11 @@ export get_temptings_via_bruteforce
 export search_nontemptings_via_boundary_condition
 export eliminate_faces_as_temptings
 export get_temptings_as_primitive_collections
+
+export get_images_of_cube_vertices
+export get_polytope_of_cube_vertices
+
+export get_seed_and_chull_of_toricpic3
 
 #include("sympy.jl")
 

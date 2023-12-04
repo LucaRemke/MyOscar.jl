@@ -403,7 +403,7 @@ end;
 
 ####################
 # determines the immaculate regions of a line bundle
-function get_immaculate_regions(variety::NormalToricVariety)
+function get_maculate_regions(variety::NormalToricVariety)
     rays_var = rays(variety)
     nrays_var = nrays(variety)
     dim_pic = rank(picard_group(variety))
@@ -698,3 +698,328 @@ function get_temptings_as_primitive_collections(variety::NormalToricVariety;
 end;
 
 
+####################
+function get_images_of_cube_vertices(variety::NormalToricVariety; print_output::Bool=true)
+    pi_v = show_generators_and_relations_of_classgroup(variety; print_output=false)
+    nrays_v = nrays(variety)
+    cube_v = cube(nrays_v,-1,0) 
+    vertices_v = vertices(cube_v)
+    
+    preimages = Vector{Int64}[]
+    images = Vector{Int64}[]
+    
+    for vert in vertices_v
+        vert_t = transform_rayvector(vert)
+        push!(preimages, vert_t) 
+        push!(images, pi_v * vert_t) 
+    end
+    
+    results = Tuple{Vector{Int64}, Vector{Vector{Int64}}}[]
+    
+    for (im, pim) in zip(images, preimages)
+        found = false
+        for (existing_im, existing_pim) in results
+            if existing_im == im
+                push!(existing_pim, pim)
+                found = true
+                break
+            end
+        end
+        if !found
+            push!(results, (im, [pim])) 
+        end
+    end
+    
+    if print_output == true    
+        for res in results
+            res1 = join(res[1], ",")
+            str = "($res1)"
+
+            for i in 1:length(res[2])
+                res2 = join(-1*res[2][i], "")
+                str = str * " = -pi($res2)"
+            end
+
+            println(str)
+            str=nothing
+        end
+    end
+    
+    return results
+end;
+
+
+##########################
+function get_polytope_of_cube_vertices(variety::NormalToricVariety; print_output::Bool=true)
+    pi_v = show_generators_and_relations_of_classgroup(variety; print_output=false)
+    nrays_v = nrays(variety)
+    cube_v = cube(nrays_v,-1,0) 
+    vertices_v = vertices(cube_v)
+    
+    images = [pi_v * vec for vec in vertices_v]
+    mat = transpose(hcat(images...)) 
+    polytope = convex_hull(mat)
+    
+    # Determine the vertices corresponding to (non)tempting sets
+    pset_nrays_v = collect(powerset(1:nrays_v)) 
+    temptings = get_temptings_via_bruteforce(variety)
+    
+    temp_vertices = []
+    for subset in temptings
+        temp = zeros(Int64, nrays_v) 
+        temp[subset] .= -1
+        push!(temp_vertices, temp)
+    end
+    images_temp_vertices = unique([pi_v * vec for vec in temp_vertices])
+    
+    nontemptings = setdiff(pset_nrays_v, temptings)
+    ntemp_vertices = []
+    for subset in nontemptings
+        ntemp = zeros(Int64, nrays_v) 
+        ntemp[subset] .= -1
+        push!(ntemp_vertices, ntemp)
+    end
+    images_ntemp_vertices = unique([pi_v * vec for vec in ntemp_vertices])
+    
+    ntemp_vertices = setdiff(transform_rayvector.(vertices(polytope)), images_temp_vertices)
+    
+    # Print output
+    l_sub = length(pset_nrays_v)
+    l_sub_t = length(temptings)
+    l_im_t = length(images_temp_vertices)
+    l_sub_nt = length(nontemptings)
+    l_im_nt = length(images_ntemp_vertices)
+    l_vert = nvertices(polytope)
+    l_lp = length(lattice_points(polytope)) 
+    l_vert_nt = length(ntemp_vertices)
+    l_lp_int = length(interior_lattice_points(polytope)) 
+    l_lp_bound = length(boundary_lattice_points(polytope))
+
+    println("We have $l_sub subsets, where $l_sub_t are tempting and $l_sub_nt are not.")
+    println()
+    println("The polytope P has $l_lp lattice points, of which $l_vert are vertices.")
+    println("- $l_im_t vertices come from the $l_sub_t tempting subsets.")
+    println("- $l_vert_nt vertices come from $l_vert_nt non-tempting subsets.")
+    println("The remaining $(l_lp-l_vert) lattice points comes from the remaining $(l_sub_nt-l_vert_nt) non-temptings.")
+    println("- $l_lp_int are interior lattice points.")
+    println("- $(l_lp_bound-l_vert) are boundary points (but no vertices).")
+    println()
+    println("In particular, the cube produces $l_im_nt immaculate line bundles:")
+    for i in images_ntemp_vertices
+        println(i)
+    end
+    
+    return images_ntemp_vertices
+    
+end;
+
+# if error "Denominator must be 1" occurs, enlarge the cutout
+function cutout_maculate_regions(variety::NormalToricVariety, cutout::Polyhedron{QQFieldElem})
+    lp_cutout = transform_rayvector.(lattice_points(cutout))
+    temptations = get_temptings_via_bruteforce(variety)
+    maculate_regions = get_maculate_regions(variety)
+    lp_regions = []
+    lp_nonregions = lp_cutout
+    
+    # to visualize the regions we cutout a part of it
+    # we obtain finitely many lattice point which can be plotted
+    
+    for region in maculate_regions
+        isec_region = intersect(cutout, region)
+        
+        lp_region = transform_rayvector.(lattice_points(isec_region))
+        lp_nonregions = [v1 for v1 in lp_nonregions if !(v1 in lp_region)]
+        
+        vertices_region = transform_rayvector.(vertices(isec_region))
+        sorted_vertices_region = Vector{Any}(sort_points_clockwise(vertices_region)) 
+         
+        df_lp_region = convert_to_df(lp_region)
+        df_sorted_vertices_region = convert_to_df(sorted_vertices_region)
+        push!(lp_regions, [df_lp_region, df_sorted_vertices_region])
+     end
+    
+    # determine the H^i cone
+    hcone = Int64[]
+    for temp in temptations
+        dr_coeff = [in(i, temp) ? -1 : 0 for i in 1:nrays(variety)]
+        cohom = transform_rayvector(all_cohomologies(toric_line_bundle(toric_divisor(variety, dr_coeff)))) 
+        i = findfirst(x -> x != 0, cohom) - 1
+        push!(hcone, i)
+    end
+    
+    # determine the immaculate linebundles in cutout
+    df_lp_nonregions = convert_to_df(lp_nonregions)
+    
+    return [lp_regions, hcone, df_lp_nonregions]
+end;
+
+function plot_maculate_regions(regions::Vector{Any}; plotsize=(400,400), plottitle=nothing)
+    maculate_lb = regions[1]
+    hcone = regions[2]
+    immaculate_lb = regions[3]
+    plot_regions = plot(framestyle=:origin, size=plotsize, ticks=([], false), legend=:outertopright) 
+    
+    for i in 1:length(maculate_lb)
+        region = maculate_lb[i]
+             
+        x_lp, y_lp = region[1].x1, region[1].x2
+        x_bound, y_bound = region[2].x1, region[2].x2
+        
+        color_regions = palette(:devon10)[1+hcone[i]]
+        
+        plot!(x_bound,y_bound, seriestype=:shape, alpha=0.5, color=color_regions, label="H$(hcone[i])-cone")
+        plot!(x_lp,y_lp, seriestype=:scatter, color=color_regions, label=:none)
+    end
+    
+    # plot immaculate line bundles
+    color_lb =  palette(:Oranges_9)[6]
+    x_imm, y_imm = immaculate_lb.x1, immaculate_lb.x2
+    plot!(x_imm,y_imm, seriestype=:scatter, color=color_lb, label="ImmZ(X)")
+    
+    if plottitle != nothing
+        title!(plottitle)
+    end
+    
+    return plot_regions
+    
+end;
+
+
+########################################
+function plot3d_maculate_regions(
+    regions::Vector{Any}; 
+    plotall::Bool = false, 
+    plotsize=(400,400), 
+    plottitle="",
+    plottitlesize = 12,
+    plotlims=nothing,
+    plotlegend=:outertopright)
+
+maculate_lb = regions[1]
+hcone = regions[2]
+immaculate_lb = regions[3]
+
+if plotall == false
+    all_plots = []
+else
+    plot_regions = plot(
+        framestyle=:origin, size=plotsize, legend=plotlegend, title=plottitle, titlefontsize=plottitlesize
+    ) 
+end
+    
+for i in 1:length(maculate_lb)
+    
+    if plotall == false
+        plot_regions = plot(
+            framestyle=:origin, size=plotsize, legend=plotlegend, title=plottitle, titlefontsize=plottitlesize
+        )
+    end 
+    
+    region = maculate_lb[i]
+         
+    x_lp, y_lp, z_lp = region[1].x1, region[1].x2, region[1].x3
+    x_bound, y_bound, z_bound = region[2].x1, region[2].x2, region[2].x3
+    
+    color_regions = palette(:devon10)[1+hcone[i]]
+    plot!(x_lp,y_lp,z_lp, seriestype=:scatter, color=color_regions, label="H$(hcone[i])-cone")
+    
+    if plotlims !=nothing
+        min, max = plotlims[1], plotlims[2]
+        xlims!(min,max)
+        ylims!(min,max)
+        zlims!(min,max)           
+    end
+        
+    plotall == false ? push!(all_plots, plot_regions) : nothing
+end
+
+# plot immaculate line bundles
+color_lb =  palette(:Oranges_9)[6]
+x_imm, y_imm, z_imm = immaculate_lb.x1, immaculate_lb.x2, immaculate_lb.x3
+
+if plotall == false
+    plot_regions = plot(
+        framestyle=:origin, size=plotsize, legend=plotlegend, title=plottitle, titlefontsize=plottitlesize
+    )
+end
+
+plot!(x_imm,y_imm,z_imm, seriestype=:scatter, color=color_lb, label="ImmZ(X)")
+    
+if plotall == false
+    push!(all_plots, plot_regions)
+    return all_plots
+else
+    return plot_regions
+end
+
+end;
+
+#############################################
+
+function print_maculate_region_info(variety::NormalToricVariety)
+    temptings = get_temptings_via_bruteforce(variety)
+    regions = get_maculate_regions(variety)
+
+    for i in 1:length(regions)
+        region = regions[i]
+        tempting = temptings[i]
+
+        basepoint = vcat(transform_rayvector.(minimal_faces(region)[1])...)
+        generators = transform_rayvector.(rays_modulo_lineality(region)[1])
+
+        println("The maculate region of R = $tempting has:")
+        println("\t Basepoint $basepoint")
+        println("\t Generators $generators")
+        i != length(regions) ? println("") : nothing
+
+    end
+end;
+
+
+function get_seed_and_chull_of_toricpic3(l::Tuple, c::Tuple, range::UnitRange{Int64})
+    n = length(l)
+    
+    if n != 3
+        return "Error: parameter l must have exactly three entries"
+    end
+    
+    l1, l2, l3 = l[1], l[2], l[3]
+    c12, c13, c23 = c[1], c[2], c[3]
+        
+    if length(c12) != l2 || length(c13) != l3 || length(c23) != l3
+        return "Error: the entries of c must have the correct lengths"
+    end
+    
+    a = [i for i in -(l1-1):-1]
+    b = [i for i in -(l2-1):-1]
+    c = [i for i in -(l3-1):-1]
+    c12_s = sum(c12)
+    c13_s = sum(c13)
+    c23_s = sum(c23)
+    
+    chull = DataFrame(x1 = Int64[], x2 = Int64[], x3 = Int64[], x4 = String[])
+    
+    for index in a
+        push!(chull, [index 0 0 "seed"])
+        push!(chull, [index-c12_s -l2 0 "chull"])
+        push!(chull, [index-c13_s -c23_s -l3 "chull"])
+        push!(chull, [index-c12_s-c13_s -l2-c23_s -l3 "chull"])
+    end
+      
+    for index in b
+        for r in range
+            push!(chull, [r index 0 "seed"])
+            push!(chull, [r index-c23_s -l3 "chull"])
+        end
+    end
+    
+    all_tuples = generate_vectors(2, range)        
+    
+    for index in c
+        for t in all_tuples
+            push!(chull, [t[1] t[2] c "seed"])
+        end
+    end
+      
+    return  chull
+end
