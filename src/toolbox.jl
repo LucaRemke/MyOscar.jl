@@ -36,7 +36,7 @@ function define_projective_space(n::Int)
         push!(max_cones, mcone)
     end
     
-    P = normal_toric_variety(ray_generators, max_cones, non_redundant = true)
+    P = normal_toric_variety(max_cones, ray_generators, non_redundant = true)
     
     return P
 end;
@@ -47,7 +47,7 @@ end;
 function define_projective_surface()
     ray_generators = [[0,1], [-1,-1], [1,0]];
     max_cones = [[1,2], [2,3], [3,1]];
-    p2 = normal_toric_variety(ray_generators, max_cones, non_redundant = true)
+    p2 = normal_toric_variety(max_cones, ray_generators, non_redundant = true)
     
     return p2
 end;
@@ -58,7 +58,7 @@ end;
 function define_hirzebruch_surface(r::Int)    
     ray_generators = [[0,1], [-r,-1], [1,0], [-1,0]]
     max_cones = [[1,4], [4,2], [2,3], [3,1]]
-    hr = normal_toric_variety(ray_generators, max_cones, non_redundant = true)
+    hr = normal_toric_variety(max_cones, ray_generators, non_redundant = true)
 
     return hr
 end;
@@ -69,7 +69,7 @@ end;
 function define_ppp()
     ray_generators = [[1,0,0], [-1,0,0], [0,1,0], [0,-1,0], [0,0,1], [0,0,-1]];
     max_cones = [[1,3,5], [1,3,6], [1,4,5], [1,4,6], [2,3,5], [2,3,6], [2,4,5], [2,4,6]];
-    ppp = normal_toric_variety(ray_generators, max_cones, non_redundant = true)
+    ppp = normal_toric_variety(max_cones, ray_generators, non_redundant = true)
     
     return ppp
 end;
@@ -80,7 +80,7 @@ end;
 function define_pentagon()
     ray_generators = [[0,1], [-1,-1], [1,0], [-1,0], [0,-1]];
     max_cones = [[1,4], [4,2], [2,5], [5,3], [3,1]];
-    pentagon = normal_toric_variety(ray_generators, max_cones, non_redundant = true)
+    pentagon = normal_toric_variety(max_cones, ray_generators, non_redundant = true)
     
     return pentagon
 end;
@@ -91,7 +91,7 @@ end;
 function define_hexagon()
     ray_generators = [[0,1], [-1,-1], [1,0], [-1,0], [0,-1], [1,1]];
     max_cones = [[1,4], [4,2], [2,5], [5,3], [3,6], [6,1]];
-    hexagon = normal_toric_variety(ray_generators, max_cones, non_redundant = true)
+    hexagon = normal_toric_variety(max_cones, ray_generators, non_redundant = true)
     
     return hexagon
 end;
