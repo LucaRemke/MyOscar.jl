@@ -1,5 +1,6 @@
 module MyOscar
 
+##########
 include("toolbox.jl")
 
 export define_projective_space
@@ -38,6 +39,19 @@ export get_images_of_cube_vertices
 export get_polytope_of_cube_vertices
 
 export get_seed_and_chull_of_toricpic3
+
+
+##########
+include("toolbox_mes.jl")
+
+export generate_vectors_from_ranges
+export is_in_locus_of_pentagon
+export advanced_extend_sequences
+export advanced_brute_force_exseq_for_pentagon_in_zero
+export group_by_type_sequence
+export plot_type
+export plot_type_allseq
+
 
 #include("sympy.jl")
 
