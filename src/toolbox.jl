@@ -156,10 +156,10 @@ end;
 # returns the map pi: Div_T -> Cl as matrix
 ####################
 function show_generators_and_relations_of_classgroup(v::NormalToricVariety; print_output::Bool=true)
-    fan_v = fan(v)
-    nrays_v = nrays(fan_v)        
+    fan_v = polyhedral_fan(v)
+    nrays_v = n_rays(fan_v)        
     cl_group = class_group(v)
-    cl_rank = rank(cl_group)
+    cl_rank = torsion_free_rank(cl_group)
     all_reps = []
     
     generators = [([i == j ? 1 : 0 for j in 1:cl_rank]) for i in 1:cl_rank]

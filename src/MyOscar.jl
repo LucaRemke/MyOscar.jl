@@ -53,6 +53,19 @@ export plot_type
 export plot_type_allseq
 
 
+##########
+include("toolbox_exceptional_sequences.jl")
+
+export calculate_augmentations_of_mes
+export calculate_helex_of_mes
+export calculate_all_helex_of_mes
+export has_duplicates
+export calculate_inverted_mes
+export search_duplicates
+
+
+
+
 #include("sympy.jl")
 
 #export evaluate_cartier_data

@@ -7,10 +7,10 @@ using SymPy;
 
 ####################
 # calculates the Cartier-Data of general Cartier-Divisor
-function calculate_cartier_data(coeffs::Vector{Sym}, var::NormalToricVariety, cones::Bool=true)
+function calculate_cartier_data(coeffs::Vector{Sym{PyObject}}, var::NormalToricVariety, cones::Bool=true)
     # implement a check if divisor is not cartier
     rays_var = rays(var)
-    maxcones_var = maximal_cones(fan(var))
+    maxcones_var = maximal_cones(polyhedral_fan(var))
 
     rays_var_int = []
     cartier_data = []
