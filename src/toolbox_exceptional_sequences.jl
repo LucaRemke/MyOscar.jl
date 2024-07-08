@@ -1,8 +1,466 @@
-# function for calculating the augmentions of a maximal exceptional sequence
+########################################
+# DEFINITION OF (NEGATIVE) IMMACULATE LOCUS
+########################################
+
+#---------------------------------------
+# Define a structure which stores the values for the immaculate locus
+# The following bases are used:
+# P^n - D1 
+# H_r - D1,D3 
+# Pentagon - D1,D3,D2+D4+D5
+# Hexagon - D1,D2,D3,D4 
+# P1xP1xP1 - D1,D3,D5
+#***************************************
+# The parameters are as follows:
+# difference: check if difference is in (negative) immaculate locus
+# param: used for varieties like P^n or H_r to specify n or reached
+# sgn: specifies if negative or positive immaculate locus is used
+#---------------------------------------
+struct NegativeImmaculateLocus
+    name::Symbol
+    func::Function
+end;
+
+# Initialize dictionary
+nimmloc = Dict{Symbol, NegativeImmaculateLocus}()
+
+#nimmloc[:p2] = NegativeImmaculateLocus(:p2, 
+#    (difference, param) -> all(diff -> diff == [1] || diff == [2], difference)
+#) 
+
+nimmloc[:pn] = NegativeImmaculateLocus(:pn, 
+    (difference, param, sgn) -> all(diff -> diff in [[i] for i in 1:param], sign(sgn)*difference)
+) 
+
+nimmloc[:h0] = NegativeImmaculateLocus(:h0, 
+    (difference, param, sgn) -> all(diff -> diff[1] == 1 || diff[2] == 1, sign(sgn)*difference)
+)
+
+nimmloc[:hr] = NegativeImmaculateLocus(:hr,
+    (difference, param, sgn) -> all(diff -> diff == [1,0] || diff == [1-param,2] || diff[2] == 1, sign(sgn)*difference)
+)
+
+nimmloc[:pentagon] = NegativeImmaculateLocus(:pentagon,
+    (difference, param, sgn) -> all(diff -> diff == [1,1,-1] || diff == [0,0,2] || 
+                (diff[3] == 0 && (diff[1] == 1 || diff[2] == 1)) ||
+                (diff[3] == 1 && (diff[1] == 0 || diff[2] == 0)), sign(sgn)*difference)
+) 
+
+nimmloc[:hexagon] = NegativeImmaculateLocus(:hexagon,
+    (difference, param, sgn) -> all(diff -> 
+        diff == [0,0,-1,1] || 
+        diff == [0,0,1,-1] ||  
+        diff == [2,2,0,2] ||
+        diff == [2,2,-2,4] ||
+        (diff[1] == diff[4] && diff[2] == 1 && diff[3] == -1) ||
+        (diff[1] == diff[4] && diff[2] == 1 && diff[3] == 0) ||
+        (diff[1] == 1 && diff[2] == diff[4] && diff[3] == 0) ||
+        (diff[1] == 1 && diff[2] == diff[4] && diff[3] == -1) ||
+        #
+        (diff[1]+1 == diff[4] && diff[2] == 1 && diff[3] == -1) ||
+        (diff[1]+1 == diff[4] && diff[2] == 1 && diff[3] == 0) ||
+        (diff[1] == diff[2] && diff[1] == -diff[3] && diff[1]+1 == diff[4]) ||
+        (diff[1]+1 == diff[2] && diff[1] == -diff[3] && diff[1]+1 == diff[4]) ||
+        #
+        (diff[1] == diff[2] && diff[1] == -diff[3]+1 && diff[1] == diff[4]) ||
+        (diff[1]-1 == diff[2] && diff[1] == -diff[3]+1 && diff[1] == diff[4]) ||
+        (diff[1] == 1 && diff[3] == 0 && diff[2]+1 == diff[4]) ||
+        (diff[1] == 1 && diff[3] == -1 && diff[2]+1 == diff[4]),
+        sign(sgn)*difference)
+) 
+
+nimmloc[:p1p1p1] = NegativeImmaculateLocus(:p1p1p1,
+    (difference, param, sgn) -> all(diff -> diff[1] == 1 || diff[2] == 1 || diff[3] == 1, sign(sgn)*difference)
+) 
+
+
+########################################
+# DICTIONARY OF CONFIGURATIONS
+########################################
+
+#---------------------------------------
+# Define a dictionary which stores the functions for the configurations
+# The following bases are used:
+# P^n - D1 
+# H_r - D1,D3 
+# Pentagon - D1,D3,D2+D4+D5
+# Hexagon - D1,D2,D3,D4 
+# P1xP1xP1 - D1,D3,D5
+#***************************************
+# The parameters are as follows:
+# difference: check if difference is in (negative) immaculate locus
+# param: used for varieties like P^n or H_r to specify n or reached
+# sgn: specifies if negative or positive immaculate locus is used
+#---------------------------------------
+
+
+#---------------------------------------
+# Configurations for P^1xP^1
+#---------------------------------------
+function configurate_exceptional_sequences_on_h0(
+        V::Vector{Vector{Vector{T}}},
+        param::Union{Int, Nothing}=nothing,
+        sgn::Int64=1
+    ) where T
+    type_sequences_dict = Dict{Vector{Int64}, Vector{Vector{Vector{T}}}}()
+
+    for seq in V
+        type_seq = Vector{Int64}()
+        for vec in seq
+            i = -1*sign(sgn)*vec #we want the negative immaculate locus
+            
+            if i == [-1,-1]
+                push!(type_seq, 0)
+            elseif i[2] == -1
+                push!(type_seq, 1)
+            elseif i[1] == -1
+                push!(type_seq, 2)
+            end
+        end
+        if haskey(type_sequences_dict, type_seq)
+            push!(type_sequences_dict[type_seq], seq)
+        else
+            type_sequences_dict[type_seq] = [seq]
+        end
+    end
+
+    return type_sequences_dict
+end;
+
+#---------------------------------------
+# Configurations for H_r
+#---------------------------------------
+function configurate_exceptional_sequences_on_hr(
+        V::Vector{Vector{Vector{T}}},
+        param::Union{Int, Nothing}=nothing,
+        sgn::Int64=1
+    ) where T
+    type_sequences_dict = Dict{Vector{Int64}, Vector{Vector{Vector{T}}}}()
+
+    for seq in V
+        type_seq = Vector{Int64}()
+        for vec in seq
+            i = -1*sign(sgn)*vec #we want the negative immaculate locus
+            
+            if i == [-1,0]
+                push!(type_seq, 0)
+            elseif i == [param-1,-2]
+                push!(type_seq, 1)
+            elseif i[2] == -1
+                push!(type_seq, 2)
+            end
+        end
+        if haskey(type_sequences_dict, type_seq)
+            push!(type_sequences_dict[type_seq], seq)
+        else
+            type_sequences_dict[type_seq] = [seq]
+        end
+    end
+
+    return type_sequences_dict
+end;
+
+#---------------------------------------
+# Configurations for the pentagon
+#---------------------------------------
+function configurate_exceptional_sequences_on_pentagon(
+        V::Vector{Vector{Vector{T}}},
+        param::Union{Int, Nothing}=nothing,
+        sgn::Int64=1
+    ) where T
+    type_sequences_dict = Dict{Vector{Int64}, Vector{Vector{Vector{T}}}}()
+
+    for seq in V
+        type_seq = Vector{Int64}()
+        for vec in seq
+            i = -1*sign(sgn)*vec #we want the negative immaculate locus
+            
+            if i == [-1,-1,1]
+                push!(type_seq, 0)
+            elseif i == [0,0,-2]
+                push!(type_seq, 1)
+            elseif i == [-1,-1,0]
+                push!(type_seq, 2)
+            elseif i == [0,0,-1]
+                push!(type_seq, 3)
+            elseif i[3] == 0 && i[1] == -1
+                push!(type_seq, 4)
+            elseif i[3] == 0 && i[2] == -1
+                push!(type_seq, 5)
+            elseif i[3] == -1 && i[1] == 0
+                push!(type_seq, 6)
+            elseif i[3] == -1 && i[2] == 0
+                push!(type_seq, 7)
+            end
+        end
+        if haskey(type_sequences_dict, type_seq)
+            push!(type_sequences_dict[type_seq], seq)
+        else
+            type_sequences_dict[type_seq] = [seq]
+        end
+    end
+
+    return type_sequences_dict
+end;
+
+#---------------------------------------
+# Configurations for the hexagon
+#---------------------------------------
+function configurate_exceptional_sequences_on_hexagon(
+    V::Vector{Vector{Vector{T}}},
+    param::Union{Int, Nothing}=nothing,
+    sgn::Int64=1
+) where T
+type_sequences_dict = Dict{Vector{Int64}, Vector{Vector{Vector{T}}}}()
+
+for seq in V
+    type_seq = Vector{Int64}()
+    for vec in seq
+        i = -1*sign(sgn)*vec #we want the negative immaculate locus
+        
+        if i == [0,0,1,-1]
+            push!(type_seq, 0)
+        elseif i == [0,0,-1,1]
+            push!(type_seq, 1)
+        elseif i == [-2,-2,0,-2]
+            push!(type_seq, 2)
+        elseif i == [-2,-2,2,-4]
+            push!(type_seq, 3)
+        # The points with multiple codes get an own type
+    elseif i == [-1, 0, 0, -1]
+        push!(type_seq, -1)
+    elseif i == [-1, -2, 1, -2]
+        push!(type_seq, -2)
+    elseif i == [-1, -1, 1, -1]
+        push!(type_seq, -3)
+    elseif i == [-1, -1, 0, -1]
+        push!(type_seq, -4)
+    elseif i == [0, -1, 0, -1]
+        push!(type_seq, -5)
+    elseif i == [-1, -1, 0, -2]
+        push!(type_seq, -6)
+    elseif i == [-2, -1, 1, -2]
+        push!(type_seq, -7)
+    elseif i == [-1, -1, 1, -2]
+        push!(type_seq, -8)
+        elseif (i[1] == i[4] && i[2] == -1 && i[3] == 1)
+            push!(type_seq, 4)
+        elseif (i[1] == i[4] && i[2] == -1 && i[3] == 0)
+            push!(type_seq, 5)
+        elseif (i[2] == i[4] && i[1] == -1 && i[3] == 0)
+            push!(type_seq, 6)
+        elseif (i[2] == i[4] && i[1] == -1 && i[3] == 1)
+            push!(type_seq, 7)
+        elseif (i[1] == i[2] && i[1] == -i[3]-1 && i[1] == i[4])
+            push!(type_seq, 8)
+        elseif (i[1] == i[2]-1 && i[1] == -i[3]-1 && i[1] == i[4])
+            push!(type_seq, 9)
+        elseif (i[1] == i[2]+1 && i[1] == -i[3] && i[1] == i[4]+1)
+            push!(type_seq, 10)
+        elseif (i[1] == i[2] && i[1] == -i[3] && i[1] == i[4]+1)
+            push!(type_seq, 11)
+        elseif (i[1] == i[4]+1 && i[2] == -1 && i[3] == 0)
+            push!(type_seq, 12)
+        elseif (i[1] == i[4]+1 && i[2] == -1 && i[3] == 1)
+            push!(type_seq, 13)
+        elseif (i[1] == -1 && i[2] == i[4]+1 && i[3] == 0)
+            push!(type_seq, 14)
+        elseif (i[1] == -1 && i[2] == i[4]+1 && i[3] == 1)
+            push!(type_seq, 15)
+        end
+    end
+    if haskey(type_sequences_dict, type_seq)
+        push!(type_sequences_dict[type_seq], seq)
+    else
+        type_sequences_dict[type_seq] = [seq]
+    end
+end
+
+return type_sequences_dict
+end;
+
+#---------------------------------------
+# Configurations for the product P^1 x P^1 x P^1
+#---------------------------------------
+function configurate_exceptional_sequences_on_p1p1p1(
+        V::Vector{Vector{Vector{T}}},
+        param::Union{Int, Nothing}=nothing,
+        sgn::Int64=1
+    ) where T
+    type_sequences_dict = Dict{Vector{Int64}, Vector{Vector{Vector{T}}}}()
+
+    for seq in V
+        type_seq = Vector{Int64}()
+        for vec in seq
+            i = -1*sign(sgn)*vec #we want the negative immaculate locus
+            
+            if i == [-1,-1,-1]
+                push!(type_seq, 0)
+            elseif (i[1]==-1 && i[2]==-1)
+                push!(type_seq, 1)
+            elseif (i[1]==-1 && i[3]==-1)
+                push!(type_seq, 2)
+            elseif (i[2]==-1 && i[3]==-1)
+                push!(type_seq, 3)
+            elseif i[1] == -1
+                push!(type_seq, 4)
+            elseif i[2] == -1
+                push!(type_seq, 5)
+            elseif i[3] == -1 
+                push!(type_seq, 6)
+            end
+        end
+        if haskey(type_sequences_dict, type_seq)
+            push!(type_sequences_dict[type_seq], seq)
+        else
+            type_sequences_dict[type_seq] = [seq]
+        end
+    end
+
+    return type_sequences_dict
+end;
+
+#---------------------------------------
+# Definition of the dictionary
+#---------------------------------------
+configurations = Dict{Symbol, Function}()
+configurations[:h0] = configurate_exceptional_sequences_on_h0
+configurations[:hr] = configurate_exceptional_sequences_on_hr
+configurations[:pentagon] = configurate_exceptional_sequences_on_pentagon
+configurations[:hexagon] = configurate_exceptional_sequences_on_hexagon
+configurations[:p1p1p1] = configurate_exceptional_sequences_on_p1p1p1
+
+########################################
+# BRUTEFORCE COMPUTATION OF MESES
+########################################
+
+#---------------------------------------
+# Checks if the difference of v with each vector in V is in the
+# negative immaculate locus
+#---------------------------------------
+function is_in_nimmloc(
+    v::Vector{T}, 
+    V::Vector{Vector{T}}, 
+    var::Symbol, 
+    param::Union{Int, Nothing}=nothing,
+    sgn::Int64=1
+) where T
+    
+    difference = [v - w for w in V]
+    cond = nimmloc[var]
+    return cond.func(difference, param, sgn)
+end;
+
+#---------------------------------------
+# Extend a given exceptional sequence by one element if it fullfills the exceptionality condition
+#---------------------------------------
+function extend_exceptional_sequences(
+    E::Vector{Vector{Vector{T}}}, 
+    V::Vector{Vector{T}}, 
+    var::Symbol, 
+    param::Union{Int, Nothing}=nothing,
+    sgn::Int64=1
+) where T
+    
+    new_sequences = Vector{Vector{Vector{T}}}()
+    
+    for seq in E
+        for vec in V
+            # Check if the difference between vec and all vectors in seq is in P
+            if is_in_nimmloc(vec, seq, var, param, sgn)
+                push!(new_sequences, push!(copy(seq), vec)) 
+            end
+        end
+    end
+    
+    return new_sequences
+end;
+
+#---------------------------------------
+# Generate all exceptional sequences of length search_depth-1,
+# where the first element is the trivial element in the Picard group
+#---------------------------------------
+function generate_exceptional_sequences(
+    var::Symbol,
+    search_range::Vector{UnitRange{T}},
+    search_depth::Int;
+    param::Union{Int, Nothing}=nothing,
+    sgn::Int64=1
+) where T
+    
+    l = length(search_range)
+    
+    if l == 1
+        considered_points_old = generate_vectors_from_ranges(search_range)
+        considered_points = [[t] for t in considered_points_old]
+    else
+        considered_points = generate_vectors_from_ranges(search_range)
+    end
+    
+    # Starting with sequences of length 1
+    # Since we can shift exceptional sequences we cn set the origin to zero
+    starting_points = [zeros(Int, l)]
+    initial_sequences = [[v] for v in starting_points]
+
+    # Perform iterations to extend sequences
+    for i in 1:search_depth
+        println("We reached step $i") 
+        initial_sequences = extend_exceptional_sequences(initial_sequences, considered_points, var, param, sgn)
+        if initial_sequences == Vector{Vector{Int64}}[]
+            println("There are no sequences after $i steps")
+            break
+        else
+            println("There are $(length(initial_sequences)) sequences of length $(i+1) \n")
+        end
+    end
+
+    return initial_sequences
+end; 
+
+########################################
+# CONDITIONS FOR (MAXIMAL) EXCEPTIONAL SEQUENCES
+########################################
+
+#---------------------------------------
+# Check if a given sequence is exceptional (possible for all varieties in nimmloc)
+#---------------------------------------
+function is_exceptional(
+        var::Symbol,
+        V::Vector{Vector{T}};
+        param::Union{Int, Nothing}=nothing,
+        sgn::Int64=1,
+        M::Matrix{Int64} = Matrix{Int}(I,length(V[1]),length(V[1]))
+    ) where T
+
+    # base change via M
+    V = [M*v for v in V]
+
+    l = length(V)
+
+    for i in 2:l
+        V_sub = V[1:i-1]
+        V_i = V[i]
+        if is_in_nimmloc(V_i, V_sub, var, param, sgn) == false
+            return false
+            break
+        end
+    end
+
+    return true
+end;
+
+
+########################################
+# AUGMENTATION + HELIXING
+########################################
+
+
+# Calculate the augmentions of a maximal exceptional sequence on a toric surface
 # mes - the maximal exceptional sequence whose augmentations should be calculated
 # E - the exceptional divisor of the blow up
 # p - the pullback of divisors
-function calculate_augmentations_of_mes(mes::Vector{Vector{T}}, E::Vector{Int64}, pullback) where T
+#---------------------------------------
+function calculate_augmentation_on_surface(mes::Vector{Vector{T}}, E::Vector{Int64}, pullback) where T
     
     augmentations = Vector{Vector{T}}[]
     l = length(mes)
@@ -25,26 +483,28 @@ function calculate_augmentations_of_mes(mes::Vector{Vector{T}}, E::Vector{Int64}
     end
     
     return augmentations
-end
+end;
 
-# function for calculating the helexing of a maximal exceptional sequence
+#---------------------------------------
+# Calculate the helixing of a maximal exceptional sequence
 # mes - the maximal exceptional sequence that is helexed
 # K - the anticanonical divisor -K_X in Pic(X) of a toric variety X 
-function calculate_helex_of_mes(mes::Vector{Vector{T}}, K::Vector{Int64}) where T
+#---------------------------------------
+function calculate_helixing(mes::Vector{Vector{T}}, K::Vector{Int64}) where T
     l = length(mes)
     helexed_mes = mes[2:l]
     push!(helexed_mes, mes[1]+K)
     helexed_mes = [vec.-helexed_mes[1] for vec in helexed_mes]
     
     return helexed_mes
-    
-end
+end;
 
-
-# function for calculating all helexings of a maximal exceptional sequence
+#---------------------------------------
+# Calculate all helixings of a maximal exceptional sequence
 # mes - the maximal exceptional sequence that is helexed
 # K - the anticanonical divisor -K_X in Pic(X) of a toric variety X 
-function calculate_all_helex_of_mes(mes::Vector{Vector{T}}, K::Vector{Int64}) where T
+#---------------------------------------
+function calculate_all_helixing(mes::Vector{Vector{T}}, K::Vector{Int64}) where T
     period = length(mes)  
     
     all_helexed_mes = Vector{Vector{T}}[]
@@ -52,14 +512,62 @@ function calculate_all_helex_of_mes(mes::Vector{Vector{T}}, K::Vector{Int64}) wh
     push!(all_helexed_mes, current_mes)    
     
     for i in 1:period-1
-        current_helex = calculate_helex_of_mes(current_mes, K)
+        current_helex = calculate_helixing(current_mes, K)
         push!(all_helexed_mes, current_helex)
         current_mes = current_helex
     end
     
     return all_helexed_mes
     
-end
+end;
+
+#---------------------------------------
+# Calculate the dualized sequence of a mes
+# mes - the maximal exceptional sequence that is helexed
+# K - the canonical divisor K_X in Pic(X) of a toric variety X 
+#---------------------------------------
+
+function calculate_dualizing(mes::Vector{Vector{T}}, K::Vector{Int64}) where T
+    l = length(mes)
+    
+    inverted_mes = [-K .- mes[l+1-i] for i in 1:l]
+    inverted_mes = [vec.-inverted_mes[1] for vec in inverted_mes]
+    
+    return inverted_mes
+end;
+
+
+########################################
+# FLIPPING
+########################################
+
+#---------------------------------------
+# Calculate the flipping for a given permutation of a maximal exceptional sequence on a toric surface
+#---------------------------------------
+function calculate_flipping(V::Vector{Vector{T}}, perm::Vector{Int64}) where T
+    
+    flipping = Vector{T}[]
+    
+    for v in V
+        push!(flipping, v[perm])
+    end
+  
+    return flipping
+end;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # function that checks if there are duplicates in vector of vectors of vectors
 function has_duplicates(list::Vector{Vector{Vector{T}}}; print::Bool=false) where T

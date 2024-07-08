@@ -76,7 +76,7 @@ end
 
 function advanced_brute_force_exseq_for_pentagon_in_zero(
     search_range::Vector{UnitRange{T}},
-    depth::Int        
+    search_depth::Int        
 ) where T
 
 considered_points = generate_vectors_from_ranges(search_range)
@@ -87,7 +87,7 @@ starting_points = [[0,0,0]]
 initial_sequences = [[v] for v in starting_points]
 
 # Perform iterations to extend sequences
-for i in 1:depth
+for i in 1:search_depth
     println("We reached step $i")
     initial_sequences = advanced_extend_sequences(initial_sequences, considered_points)
     if initial_sequences == Vector{Vector{Int64}}[]
