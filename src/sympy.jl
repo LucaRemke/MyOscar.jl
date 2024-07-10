@@ -261,13 +261,30 @@ function find_parameter(seq::Vector{Vector{T}}) where T
     return "No parameter was found"
 end;
 
+
+#---------------------------------------
+# Substitute a sequence with a parameter with the value
+#---------------------------------------
+function substitute_sequence(
+        seq::Vector{Vector{Sym{PyObject}}},
+        param::Sym{PyObject},
+        value::Int64
+    )
+    seq_sub = [[subs(expr, param, value) for expr in vec] for vec in seq]
+    seq_sub = transform_rayvector.(seq_sub)
+    return seq_sub
+end;
+
 #---------------------------------------
 # Substitute a sequence with a parameter with the value at the same index of the integer sequence
 #---------------------------------------
-function substitute_configuration(seq_int::Vector{Vector{Int64}}, seq_p::Vector{Vector{Sym{PyObject}}})
+function substitute_configuration(
+        seq_int::Vector{Vector{Int64}}, 
+        seq_p::Vector{Vector{Sym{PyObject}}}
+    )
     vec, elem = find_parameter(seq_p)
     subst_var = seq_int[vec][elem]
-    subst_seq_p = [[subs(expr, p, subst_var) for expr in vec] for vec in seq_p]
+    subst_seq_p = substitute_sequence(seq_p, p, subst_var)
     
     return subst_seq_p
 end;
@@ -298,7 +315,10 @@ end;
 #---------------------------------------
 # Checks if a vector of sequences can be described by a general rule
 #---------------------------------------
-function find_configurations(D::Dict{Vector{Int64}, Vector{Vector{Vector{Int64}}}})
+function find_configurations(
+        D::Dict{Vector{Int64}, Vector{Vector{Vector{Int64}}}};
+        check_result::Bool=true
+    )
     general_description = Dict{Vector{Int64}, Vector{Vector{Sym{PyObject}}}}()
     p = Sym("p") 
     
@@ -360,6 +380,16 @@ function find_configurations(D::Dict{Vector{Int64}, Vector{Vector{Vector{Int64}}
             end
         end
         general_description[conf_key] = conf_seq_general
+
+        # Check if the general condition fits for all sequences
+        if check_result == true
+            for seq in conf_seq
+                check = check_single_configurations_vector(conf_seq_general, seq)
+                if check == false
+                    throw(ErrorException("The defined general description does not fit for all sequences of this type!")) 
+                end                
+            end
+        end
     end
         
     return general_description
@@ -384,4 +414,19 @@ function check_single_configurations(
     end
 
     return true
+end;
+
+#---------------------------------------
+# Checks if each single encoding fits into a general encoding where inputs are vectors
+#---------------------------------------
+function check_single_configurations_vector(
+    V_general::Vector{Vector{Sym{PyObject}}},
+    V_single::Vector{Vector{Int64}}
+)
+found = find_sequence_in_configurations(V_single, [V_general])
+if found == false
+    return false
+else
+    return true
+end
 end;

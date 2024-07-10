@@ -110,6 +110,10 @@ export plot_maculate_regions
 export plot3d_maculate_regions
 export visualize_projection_of_immaculate_linebundles_for_pic3
 
+export visualize3d_sequence_by_layers
+export visualize3d_sequence_moving_lines
+export visualize3d_sequence_process_by_layers
+
 
 
 ##########

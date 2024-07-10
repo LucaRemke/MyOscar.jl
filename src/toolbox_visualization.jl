@@ -1,3 +1,5 @@
+using Plots.PlotMeasures
+
 ########################################
 # PLOTING GENERAL DATA
 ########################################
@@ -136,7 +138,7 @@ function plot_maculate_regions(regions::Vector{Any}; plotsize=(400,400), plottit
         x_lp, y_lp = region[1].x1, region[1].x2
         x_bound, y_bound = region[2].x1, region[2].x2
         
-        color_regions = palette(:devon10)[1+hcone[i]]
+        color_regions = palette(:devon10)[1+2*hcone[i]]
         
         plot!(x_bound,y_bound, seriestype=:shape, alpha=0.5, color=color_regions, label="H$(hcone[i])-cone")
         plot!(x_lp,y_lp, seriestype=:scatter, color=color_regions, label=:none)
@@ -159,71 +161,71 @@ end;
 # Plot the maculate regions for a specific set of coordinates of a toric variety with Picard rank 3
 #---------------------------------------
 function plot3d_maculate_regions(
-    regions::Vector{Any}; 
-    plotall::Bool = false, 
-    plotsize=(400,400), 
-    plottitle="",
-    plottitlesize = 12,
-    plotlims=nothing,
-    plotlegend=:outertopright)
+        regions::Vector{Any}; 
+        plotall::Bool = false, 
+        plotsize=(400,400), 
+        plottitle="",
+        plottitlesize = 12,
+        plotlims=nothing,
+        plotlegend=:outertopright
+    )
 
-maculate_lb = regions[1]
-hcone = regions[2]
-immaculate_lb = regions[3]
+    maculate_lb = regions[1]
+    hcone = regions[2]
+    immaculate_lb = regions[3]
 
-if plotall == false
-    all_plots = []
-else
-    plot_regions = plot(
-        framestyle=:origin, size=plotsize, legend=plotlegend, title=plottitle, titlefontsize=plottitlesize
-    ) 
-end
-    
-for i in 1:length(maculate_lb)
-    
+    if plotall == false
+        all_plots = []
+    else
+        plot_regions = plot(
+            framestyle=:origin, size=plotsize, legend=plotlegend, title=plottitle, titlefontsize=plottitlesize
+        ) 
+    end
+        
+    for i in 1:length(maculate_lb)
+        
+        if plotall == false
+            plot_regions = plot(
+                framestyle=:origin, size=plotsize, legend=plotlegend, title=plottitle, titlefontsize=plottitlesize
+            )
+        end 
+        
+        region = maculate_lb[i]
+            
+        x_lp, y_lp, z_lp = region[1].x1, region[1].x2, region[1].x3
+        x_bound, y_bound, z_bound = region[2].x1, region[2].x2, region[2].x3
+        
+        color_regions = palette(:devon10)[1+2*hcone[i]]
+        plot!(x_lp,y_lp,z_lp, seriestype=:scatter, color=color_regions, label="H$(hcone[i])-cone")
+        
+        if plotlims !=nothing
+            min, max = plotlims[1], plotlims[2]
+            xlims!(min,max)
+            ylims!(min,max)
+            zlims!(min,max)           
+        end
+            
+        plotall == false ? push!(all_plots, plot_regions) : nothing
+    end
+
+    # plot immaculate line bundles
+    color_lb =  palette(:Oranges_9)[6]
+    x_imm, y_imm, z_imm = immaculate_lb.x1, immaculate_lb.x2, immaculate_lb.x3
+
     if plotall == false
         plot_regions = plot(
             framestyle=:origin, size=plotsize, legend=plotlegend, title=plottitle, titlefontsize=plottitlesize
         )
-    end 
-    
-    region = maculate_lb[i]
-         
-    x_lp, y_lp, z_lp = region[1].x1, region[1].x2, region[1].x3
-    x_bound, y_bound, z_bound = region[2].x1, region[2].x2, region[2].x3
-    
-    color_regions = palette(:devon10)[1+hcone[i]]
-    plot!(x_lp,y_lp,z_lp, seriestype=:scatter, color=color_regions, label="H$(hcone[i])-cone")
-    
-    if plotlims !=nothing
-        min, max = plotlims[1], plotlims[2]
-        xlims!(min,max)
-        ylims!(min,max)
-        zlims!(min,max)           
     end
+
+    plot!(x_imm,y_imm,z_imm, seriestype=:scatter, color=color_lb, label="ImmZ(X)")
         
-    plotall == false ? push!(all_plots, plot_regions) : nothing
-end
-
-# plot immaculate line bundles
-color_lb =  palette(:Oranges_9)[6]
-x_imm, y_imm, z_imm = immaculate_lb.x1, immaculate_lb.x2, immaculate_lb.x3
-
-if plotall == false
-    plot_regions = plot(
-        framestyle=:origin, size=plotsize, legend=plotlegend, title=plottitle, titlefontsize=plottitlesize
-    )
-end
-
-plot!(x_imm,y_imm,z_imm, seriestype=:scatter, color=color_lb, label="ImmZ(X)")
-    
-if plotall == false
-    push!(all_plots, plot_regions)
-    return all_plots
-else
-    return plot_regions
-end
-
+    if plotall == false
+        push!(all_plots, plot_regions)
+        return all_plots
+    else
+        return plot_regions
+    end
 end;
 
 #---------------------------------------
@@ -338,4 +340,231 @@ function visualize_projection_of_immaculate_linebundles_for_pic3(coeffs::Vector{
    
     return plot_all
     
-end
+end;
+
+
+########################################
+# PLOTTING EXCEPTIONAL SEQUENCES
+########################################
+
+#---------------------------------------
+# Plot a sequence in layers 
+#---------------------------------------
+function visualize3d_sequence_by_layers(
+        seq::Vector{Vector{T}},
+        plot_area::Vector{UnitRange{Int64}};
+        cam::Tuple{Int64, Int64}=(10,20)
+    ) where T
+
+    # Define empty vector for the plots
+    plot_seq = Any[]
+
+    # Convert sequence into dataframe
+    df_seq = convert_to_df(seq)
+
+    # Determine the layers of the plot
+    x_lim_min = first(plot_area[1])
+    x_lim_max = last(plot_area[1])
+    y_lim_min = first(plot_area[2])
+    y_lim_max = last(plot_area[2])
+    z_lim_min = first(plot_area[3])
+    z_lim_max = last(plot_area[3])
+
+    for layer in plot_area[3]
+
+        # Define an empty plot
+        layer_plot = plot(
+            xlims = (x_lim_min,x_lim_max), xticks = x_lim_min:1:x_lim_max,
+            ylims = (y_lim_min,y_lim_max), yticks = y_lim_min:1:y_lim_max,
+            zlims = (z_lim_min,z_lim_max), zticks = z_lim_min:1:z_lim_max,
+            grid = :true, gridalpha = 0.5,
+            framestyle = :box,
+            camera = cam,
+            margin = -2mm
+        )
+
+        # Add the xy-plane of height layer
+        z_plane = ones(length(plot_area[1]), length(plot_area[2])) * layer
+
+        surface!(
+            plot_area[1], plot_area[2], z_plane, 
+            alpha = 0.5, color = :gray, colorbar=false
+        )
+
+        # Determine the elements of the exceptional sequence in the current layer
+        df_seq_layer = filter(row -> row.x3 == layer, df_seq)
+
+        # Plot the elemetns in the current layer and label them
+        plot!(
+            df_seq_layer.x1, df_seq_layer.x2, df_seq_layer.x3, 
+            seriestype = :scatter, framestyle = :axes, legend = :false, color = :red, markersize = 3
+        )
+
+        labeling = findall(row -> row.x3 == layer, eachrow(df_seq)) 
+
+        for i in labeling                
+            annotate!([(
+                df_seq.x1[i], df_seq.x2[i], df_seq.x3[i], 
+                text("$(i-1)", 11, :green, :left, :bottom)
+            )])
+        end 
+
+        push!(plot_seq, layer_plot)
+    end
+
+    return plot_seq
+end;
+
+#---------------------------------------
+# Plot a sequence with indicating moving lines
+#---------------------------------------
+function visualize3d_sequence_moving_lines(
+        seq::Vector{Vector{T}},
+        plot_area::Vector{UnitRange{Int64}},
+        color_vector::Vector{Int64},
+        x_shift::Float64=0.0,
+        y_shift::Float64=0.0;
+        cam::Tuple{Int64, Int64}=(10,20),
+        siz::Tuple{Int64, Int64}=(300,300),
+        skip::Union{Int, Nothing}=nothing,
+        transp::Float64=0.5
+    ) where T
+
+    df = convert_to_df(seq)
+    df.x4 = color_vector
+
+    x_lim_min = first(plot_area[1])
+    x_lim_max = last(plot_area[1])
+    y_lim_min = first(plot_area[2])
+    y_lim_max = last(plot_area[2])
+    z_lim_min = first(plot_area[3])
+    z_lim_max = last(plot_area[3])
+
+    layer_plot = plot(
+        xlims = (x_lim_min,x_lim_max), xticks = x_lim_min:1:x_lim_max,
+        ylims = (y_lim_min,y_lim_max), yticks = y_lim_min:1:y_lim_max,
+        zlims = (z_lim_min,z_lim_max), zticks = z_lim_min:1:z_lim_max,
+        grid = :true, gridalpha = 0.5,
+        framestyle = :box,
+        camera = cam,
+        size = siz
+    )
+
+    for layer in plot_area[3]
+        # Add the xy-plane of height layer
+        z_plane = ones(length(plot_area[1]), length(plot_area[2])) * layer
+
+        surface!(
+            plot_area[1], plot_area[2], z_plane, 
+            alpha = transp, color = :gray, colorbar=false
+        )
+
+        # Determine the elements of the exceptional sequence in the current layer
+        df_seq_layer = filter(row -> row.x3 == layer, df)
+
+        # Plot the elemetns in the current layer and label them
+        colors = ifelse.(df_seq_layer.x4 .== 0, "blue", "red")
+
+        plot!(
+            df_seq_layer.x1, df_seq_layer.x2, df_seq_layer.x3, 
+            seriestype = :scatter, framestyle = :axes, legend = :false, color = colors, markersize = 3
+        )
+
+        if layer != skip        
+            labeling = findall(row -> row.x3 == layer, eachrow(df)) 
+            for i in labeling                
+                annotate!([(
+                    df.x1[i] + x_shift, df.x2[i] + y_shift, df.x3[i], 
+                    text("$(i-1)", 11, :green, :right)
+                )])
+            end
+        end
+    end
+
+    return layer_plot
+end;
+
+#---------------------------------------
+# Plot a sequence in layers for several p
+#---------------------------------------
+function visualize3d_sequence_process_by_layers(
+        seq::Vector{Vector{Vector{T}}},
+        plot_area::Vector{UnitRange{Int64}};
+        cam::Tuple{Int64, Int64}=(10,20)
+    ) where T
+
+    # Define empty vector for the plots
+    plot_seq = Any[]
+
+    # Determine duplicates, as they should have another color
+    df_seq = convert_to_df.(seq)
+    df1 = df_seq[1]
+    df2 = df_seq[2]
+
+    result_vector = Vector{Int}(undef, nrow(df1)) 
+    for i in 1:nrow(df1)
+        result_vector[i] = isequal(df1[i, :], df2[i, :]) ? 1 : 0
+    end
+
+    for df in df_seq
+        df.x4 = result_vector
+    end    
+
+    # Determine the layers of the plot
+    x_lim_min = first(plot_area[1])
+    x_lim_max = last(plot_area[1])
+    y_lim_min = first(plot_area[2])
+    y_lim_max = last(plot_area[2])
+    z_lim_min = first(plot_area[3])
+    z_lim_max = last(plot_area[3])
+
+    for df in df_seq
+
+        # Define an empty plot
+        layer_plot = plot(
+            xlims = (x_lim_min,x_lim_max), xticks = x_lim_min:1:x_lim_max,
+            ylims = (y_lim_min,y_lim_max), yticks = y_lim_min:1:y_lim_max,
+            zlims = (z_lim_min,z_lim_max), zticks = z_lim_min:1:z_lim_max,
+            grid = :true, gridalpha = 0.5,
+            framestyle = :box,
+            camera = cam
+        )
+
+        for layer in plot_area[3]
+            # Add the xy-plane of height layer
+            z_plane = ones(length(plot_area[1]), length(plot_area[2])) * layer
+
+            surface!(
+                plot_area[1], plot_area[2], z_plane, 
+                alpha = 0.5, color = :gray, colorbar=false
+            )
+
+            # Determine the elements of the exceptional sequence in the current layer
+            df_seq_layer = filter(row -> row.x3 == layer, df)
+
+            # Plot the elemetns in the current layer and label them
+            colors = ifelse.(df_seq_layer.x4 .== 0, "blue", "red")
+
+            plot!(
+                df_seq_layer.x1, df_seq_layer.x2, df_seq_layer.x3, 
+                seriestype = :scatter, framestyle = :axes, legend = :false, color = colors, markersize = 3
+            )
+
+            labeling = findall(row -> row.x3 == layer, eachrow(df)) 
+
+            for i in labeling                
+                annotate!([(
+                    df.x1[i], df.x2[i], df.x3[i], 
+                    text("$(i-1)", 11, :green, :left, :bottom)
+                )])
+            end
+        end
+
+        push!(plot_seq, layer_plot)
+    end
+
+    return plot_seq
+
+end;
+
+
