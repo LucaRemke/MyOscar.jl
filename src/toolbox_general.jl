@@ -23,7 +23,7 @@ end;
 #---------------------------------------
 function transform_rayvector(R::Any)
     vect = Int64[]
-    for j in 1:length(R)
+    for j in eachindex(R)
         entry = Int64(R[j])
         push!(vect,entry)
     end
@@ -61,74 +61,72 @@ end;
 # Prints a vector of vector of vectors as a latex table
 #---------------------------------------
 function print_latex_code(
-    V::Vector{Vector{Vector{Vector{T}}}},
-    path::String
-) where T
+        V::Vector{Vector{Vector{Vector{T}}}},
+        path::String
+    ) where T
 
-n_V = length(V)
-n_seq = length(V[1])
-n_vec = length(V[1][1])
-n_ele = length(V[1][1][1])
+    n_V = length(V)
+    n_seq = length(V[1])
+    n_vec = length(V[1][1])
+    n_ele = length(V[1][1][1])
 
-cols_string = "\\begin{array}{|c|"
-cols_string *= repeat("c|", n_vec-1)
-cols_string *= "}\n"
+    cols_string = "\\begin{array}{|c|"
+    cols_string *= repeat("c|", n_vec-1)
+    cols_string *= "}\n"
 
-string = ""
+    string = ""
 
-for index_hex in 1:n_V
-    string *= "\\resizebox{\\textwidth}{!}{\$\\displaystyle\n"
-    string *= "\\renewcommand{\\arraystretch}{2.5}\n"    
-    string *= cols_string
-    string *= "\\hline\n"
-    string *= "S_{$(index_hex)}^{0} &\n"
-    string *= "\\begin{psmallmatrix}\n"
-    
-    for row in 1:n_ele
-        for col in 1:n_vec
-            el = V[index_hex][1][col][row]
-            col != n_vec ? string *= "$el & " : string *= "$el "
-        end
-        string *= "\\\\\n"
-    end
-    
-    string *= "\\end{psmallmatrix}\n"
-    string *= "&\n"
-
-    for helex in 1:n_seq-1
-        string *= "S_{$(index_hex)}^{$(helex)} &\n"
+    for index_hex in 1:n_V
+        string *= "\\resizebox{\\textwidth}{!}{\$\\displaystyle\n"
+        string *= "\\renewcommand{\\arraystretch}{2.5}\n"    
+        string *= cols_string
+        string *= "\\hline\n"
+        string *= "S_{$(index_hex)}^{0} &\n"
         string *= "\\begin{psmallmatrix}\n"
-
+        
         for row in 1:n_ele
             for col in 1:n_vec
-                el = V[index_hex][helex+1][col][row]
+                el = V[index_hex][1][col][row]
                 col != n_vec ? string *= "$el & " : string *= "$el "
             end
-        string *= "\\\\\n"
+            string *= "\\\\\n"
         end
-
+        
         string *= "\\end{psmallmatrix}\n"
+        string *= "&\n"
 
-        if (helex == 2 || helex == n_seq-1)
-            string *= "\\\\[1.5ex]\n"
-            string *= "\\hline\n"
-        else
-            string *= "&\n"
+        for helex in 1:n_seq-1
+            string *= "S_{$(index_hex)}^{$(helex)} &\n"
+            string *= "\\begin{psmallmatrix}\n"
+
+            for row in 1:n_ele
+                for col in 1:n_vec
+                    el = V[index_hex][helex+1][col][row]
+                    col != n_vec ? string *= "$el & " : string *= "$el "
+                end
+            string *= "\\\\\n"
+            end
+
+            string *= "\\end{psmallmatrix}\n"
+
+            if (helex == 2 || helex == n_seq-1)
+                string *= "\\\\[1.5ex]\n"
+                string *= "\\hline\n"
+            else
+                string *= "&\n"
+            end
         end
+
+        string *= "\\end{array}\$\n"
+        string *= "}\n"
+        #string *= "\\vspace*{0.35cm}\n"
+        string *= "\n"
+                    
     end
 
-    string *= "\\end{array}\$\n"
-    string *= "}\n"
-    #string *= "\\vspace*{0.35cm}\n"
-    string *= "\n"
-    
-    
-           
-end
+    open(path, "w") do file
+        write(file, string)
+    end
 
-open(path, "w") do file
-    write(file, string)
-end
-
-return "File was saved as $path"
+    return "File was saved as $path"
 end    

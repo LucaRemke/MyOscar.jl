@@ -207,76 +207,76 @@ end;
 # Configurations for the hexagon
 #---------------------------------------
 function configurate_exceptional_sequences_on_hexagon(
-    V::Vector{Vector{Vector{T}}},
-    param::Union{Int, Nothing}=nothing,
-    sgn::Int64=1
-) where T
-type_sequences_dict = Dict{Vector{Int64}, Vector{Vector{Vector{T}}}}()
+        V::Vector{Vector{Vector{T}}},
+        param::Union{Int, Nothing}=nothing,
+        sgn::Int64=1
+    ) where T
+    type_sequences_dict = Dict{Vector{Int64}, Vector{Vector{Vector{T}}}}()
 
-for seq in V
-    type_seq = Vector{Int64}()
-    for vec in seq
-        i = -1*sign(sgn)*vec #we want the negative immaculate locus
-        
-        if i == [0,0,1,-1]
-            push!(type_seq, 0)
-        elseif i == [0,0,-1,1]
-            push!(type_seq, 1)
-        elseif i == [-2,-2,0,-2]
-            push!(type_seq, 2)
-        elseif i == [-2,-2,2,-4]
-            push!(type_seq, 3)
-        # The points with multiple codes get an own type
-    elseif i == [-1, 0, 0, -1]
-        push!(type_seq, -1)
-    elseif i == [-1, -2, 1, -2]
-        push!(type_seq, -2)
-    elseif i == [-1, -1, 1, -1]
-        push!(type_seq, -3)
-    elseif i == [-1, -1, 0, -1]
-        push!(type_seq, -4)
-    elseif i == [0, -1, 0, -1]
-        push!(type_seq, -5)
-    elseif i == [-1, -1, 0, -2]
-        push!(type_seq, -6)
-    elseif i == [-2, -1, 1, -2]
-        push!(type_seq, -7)
-    elseif i == [-1, -1, 1, -2]
-        push!(type_seq, -8)
-        elseif (i[1] == i[4] && i[2] == -1 && i[3] == 1)
-            push!(type_seq, 4)
-        elseif (i[1] == i[4] && i[2] == -1 && i[3] == 0)
-            push!(type_seq, 5)
-        elseif (i[2] == i[4] && i[1] == -1 && i[3] == 0)
-            push!(type_seq, 6)
-        elseif (i[2] == i[4] && i[1] == -1 && i[3] == 1)
-            push!(type_seq, 7)
-        elseif (i[1] == i[2] && i[1] == -i[3]-1 && i[1] == i[4])
-            push!(type_seq, 8)
-        elseif (i[1] == i[2]-1 && i[1] == -i[3]-1 && i[1] == i[4])
-            push!(type_seq, 9)
-        elseif (i[1] == i[2]+1 && i[1] == -i[3] && i[1] == i[4]+1)
-            push!(type_seq, 10)
-        elseif (i[1] == i[2] && i[1] == -i[3] && i[1] == i[4]+1)
-            push!(type_seq, 11)
-        elseif (i[1] == i[4]+1 && i[2] == -1 && i[3] == 0)
-            push!(type_seq, 12)
-        elseif (i[1] == i[4]+1 && i[2] == -1 && i[3] == 1)
-            push!(type_seq, 13)
-        elseif (i[1] == -1 && i[2] == i[4]+1 && i[3] == 0)
-            push!(type_seq, 14)
-        elseif (i[1] == -1 && i[2] == i[4]+1 && i[3] == 1)
-            push!(type_seq, 15)
+    for seq in V
+        type_seq = Vector{Int64}()
+        for vec in seq
+            i = -1*sign(sgn)*vec #we want the negative immaculate locus
+            
+            if i == [0,0,1,-1]
+                push!(type_seq, 0)
+            elseif i == [0,0,-1,1]
+                push!(type_seq, 1)
+            elseif i == [-2,-2,0,-2]
+                push!(type_seq, 2)
+            elseif i == [-2,-2,2,-4]
+                push!(type_seq, 3)
+            # The points with multiple codes get an own type
+            elseif i == [-1, 0, 0, -1]
+                push!(type_seq, -1)
+            elseif i == [-1, -2, 1, -2]
+                push!(type_seq, -2)
+            elseif i == [-1, -1, 1, -1]
+                push!(type_seq, -3)
+            elseif i == [-1, -1, 0, -1]
+                push!(type_seq, -4)
+            elseif i == [0, -1, 0, -1]
+                push!(type_seq, -5)
+            elseif i == [-1, -1, 0, -2]
+                push!(type_seq, -6)
+            elseif i == [-2, -1, 1, -2]
+                push!(type_seq, -7)
+            elseif i == [-1, -1, 1, -2]
+                push!(type_seq, -8)
+            elseif (i[1] == i[4] && i[2] == -1 && i[3] == 1)
+                push!(type_seq, 4)
+            elseif (i[1] == i[4] && i[2] == -1 && i[3] == 0)
+                push!(type_seq, 5)
+            elseif (i[2] == i[4] && i[1] == -1 && i[3] == 0)
+                push!(type_seq, 6)
+            elseif (i[2] == i[4] && i[1] == -1 && i[3] == 1)
+                push!(type_seq, 7)
+            elseif (i[1] == i[2] && i[1] == -i[3]-1 && i[1] == i[4])
+                push!(type_seq, 8)
+            elseif (i[1] == i[2]-1 && i[1] == -i[3]-1 && i[1] == i[4])
+                push!(type_seq, 9)
+            elseif (i[1] == i[2]+1 && i[1] == -i[3] && i[1] == i[4]+1)
+                push!(type_seq, 10)
+            elseif (i[1] == i[2] && i[1] == -i[3] && i[1] == i[4]+1)
+                push!(type_seq, 11)
+            elseif (i[1] == i[4]+1 && i[2] == -1 && i[3] == 0)
+                push!(type_seq, 12)
+            elseif (i[1] == i[4]+1 && i[2] == -1 && i[3] == 1)
+                push!(type_seq, 13)
+            elseif (i[1] == -1 && i[2] == i[4]+1 && i[3] == 0)
+                push!(type_seq, 14)
+            elseif (i[1] == -1 && i[2] == i[4]+1 && i[3] == 1)
+                push!(type_seq, 15)
+            end
+        end
+        if haskey(type_sequences_dict, type_seq)
+            push!(type_sequences_dict[type_seq], seq)
+        else
+            type_sequences_dict[type_seq] = [seq]
         end
     end
-    if haskey(type_sequences_dict, type_seq)
-        push!(type_sequences_dict[type_seq], seq)
-    else
-        type_sequences_dict[type_seq] = [seq]
-    end
-end
 
-return type_sequences_dict
+    return type_sequences_dict
 end;
 
 #---------------------------------------
@@ -339,12 +339,12 @@ configurations[:p1p1p1] = configurate_exceptional_sequences_on_p1p1p1
 # negative immaculate locus
 #---------------------------------------
 function is_in_nimmloc(
-    v::Vector{T}, 
-    V::Vector{Vector{T}}, 
-    var::Symbol, 
-    param::Union{Int, Nothing}=nothing,
-    sgn::Int64=1
-) where T
+        v::Vector{T}, 
+        V::Vector{Vector{T}}, 
+        var::Symbol, 
+        param::Union{Int, Nothing}=nothing,
+        sgn::Int64=1
+    ) where T
     
     difference = [v - w for w in V]
     cond = nimmloc[var]
@@ -355,12 +355,12 @@ end;
 # Extend a given exceptional sequence by one element if it fullfills the exceptionality condition
 #---------------------------------------
 function extend_exceptional_sequences(
-    E::Vector{Vector{Vector{T}}}, 
-    V::Vector{Vector{T}}, 
-    var::Symbol, 
-    param::Union{Int, Nothing}=nothing,
-    sgn::Int64=1
-) where T
+        E::Vector{Vector{Vector{T}}}, 
+        V::Vector{Vector{T}}, 
+        var::Symbol, 
+        param::Union{Int, Nothing}=nothing,
+        sgn::Int64=1
+    ) where T
     
     new_sequences = Vector{Vector{Vector{T}}}()
     
@@ -381,12 +381,12 @@ end;
 # where the first element is the trivial element in the Picard group
 #---------------------------------------
 function generate_exceptional_sequences(
-    var::Symbol,
-    search_range::Vector{UnitRange{T}},
-    search_depth::Int;
-    param::Union{Int, Nothing}=nothing,
-    sgn::Int64=1
-) where T
+        var::Symbol,
+        search_range::Vector{UnitRange{T}},
+        search_depth::Int;
+        param::Union{Int, Nothing}=nothing,
+        sgn::Int64=1
+    ) where T
     
     l = length(search_range)
     
@@ -556,19 +556,8 @@ function calculate_flipping(V::Vector{Vector{T}}, perm::Vector{Int64}) where T
 end;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+# old functions
+#=
 # function that checks if there are duplicates in vector of vectors of vectors
 function has_duplicates(list::Vector{Vector{Vector{T}}}; print::Bool=false) where T
     set = Set(list)
@@ -620,12 +609,6 @@ function search_duplicates(list_source::Vector{Vector{Vector{T}}}, list_target::
     
 end
 
-
-
-
-
-# old functions
-#=
 # function for calculating the augmentions of the meses on the pentagon
 function create_augmentations(meses::Vector{Vector{Vector{Sym{PyObject}}}}, E::Vector{Int64})
     augmentations = Vector{Vector{Sym{PyObject}}}[]
@@ -828,8 +811,5 @@ for (index, c) in enumerate(coincidences_all_new)
     
     println("---------------------------------------------------------------")
 end
-
-
-
 
 =#

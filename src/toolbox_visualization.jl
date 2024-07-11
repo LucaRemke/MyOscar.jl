@@ -1,5 +1,3 @@
-using Plots.PlotMeasures
-
 ########################################
 # PLOTING GENERAL DATA
 ########################################
@@ -7,7 +5,13 @@ using Plots.PlotMeasures
 #---------------------------------------
 # Plot data of a Dataframe as 1/2/3D plot
 #---------------------------------------
-function plot_data(df::DataFrame; df_title=nothing, ax_labels::Bool=true, style::Symbol=:origin, camerapoint=nothing)
+function plot_data(
+        df::DataFrame; 
+        df_title=nothing, 
+        ax_labels::Bool=true, 
+        style::Symbol=:origin, 
+        camerapoint=nothing
+    )
     
     n_cols = size(df,2)
     name_cols = names(df)
@@ -75,47 +79,56 @@ end;
 #---------------------------------------
 # Creates a gif from a dataframe
 #---------------------------------------
-function create_gif_from_df(df::DataFrame, path::String; 
-    frames_per_sec::Int64=20, records::UnitRange{Int64}=0:360, angle::Int64=165)
-
-name_cols = names(df)    
-plots = []
-anim = Animation()
-for i in records
-    plot_i = plot(df[!, name_cols[1]], df[!, name_cols[2]], df[!, name_cols[3]],
-        seriestype=:scatter,
-        framestyle=:origin,
-        label = nothing,
-        camera = (i, angle)
+function create_gif_from_df(
+        df::DataFrame, 
+        path::String; 
+        frames_per_sec::Int64=20, 
+        records::UnitRange{Int64}=0:360, 
+        angle::Int64=165
     )
-    push!(plots, plot_i)
-    frame(anim)
-end
 
-gif_plot = gif(anim, path; fps=frames_per_sec)
+    name_cols = names(df)    
+    plots = []
+    anim = Animation()
+    for i in records
+        plot_i = plot(df[!, name_cols[1]], df[!, name_cols[2]], df[!, name_cols[3]],
+            seriestype=:scatter,
+            framestyle=:origin,
+            label = nothing,
+            camera = (i, angle)
+        )
+        push!(plots, plot_i)
+        frame(anim)
+    end
 
-return gif_plot
+    gif_plot = gif(anim, path; fps=frames_per_sec)
 
+    return gif_plot
 end;
 
 #---------------------------------------
 # Creates a gif from a vector of plots
 #---------------------------------------
-function create_gif_from_vector(plots::Vector{Any}, path::String, dim::Tuple{Int64, Int64}; 
-    frames_per_sec::Int64=20, records::UnitRange{Int64}=0:360, angle::Int64=165)
+function create_gif_from_vector(
+        plots::Vector{Any}, 
+        path::String, 
+        dim::Tuple{Int64, Int64}; 
+        frames_per_sec::Int64=20, 
+        records::UnitRange{Int64}=0:360, 
+        angle::Int64=165
+    )
 
-all_plots = plot(plots..., size=dim)
-anim = Animation()
+    all_plots = plot(plots..., size=dim)
+    anim = Animation()
 
-for i in records
-    plot!(camera = (i, angle))
-    frame(anim)
-end
+    for i in records
+        plot!(camera = (i, angle))
+        frame(anim)
+    end
 
-gif_plot = gif(anim, path; fps=frames_per_sec)
+    gif_plot = gif(anim, path; fps=frames_per_sec)
 
-return gif_plot
-
+    return gif_plot
 end;
 
 
@@ -127,12 +140,13 @@ end;
 # Plot the maculate regions for a specific set of coordinates of a toric variety with Picard rank 2
 #---------------------------------------
 function plot_maculate_regions(regions::Vector{Any}; plotsize=(400,400), plottitle=nothing)
+
     maculate_lb = regions[1]
     hcone = regions[2]
     immaculate_lb = regions[3]
     plot_regions = plot(framestyle=:origin, size=plotsize, ticks=([], false), legend=:outertopright) 
     
-    for i in 1:length(maculate_lb)
+    for i in eachindex(maculate_lb)
         region = maculate_lb[i]
              
         x_lp, y_lp = region[1].x1, region[1].x2
@@ -149,12 +163,11 @@ function plot_maculate_regions(regions::Vector{Any}; plotsize=(400,400), plottit
     x_imm, y_imm = immaculate_lb.x1, immaculate_lb.x2
     plot!(x_imm,y_imm, seriestype=:scatter, color=color_lb, label="ImmZ(X)")
     
-    if plottitle != nothing
+    if !isnothing(plottitle)
         title!(plottitle)
     end
     
-    return plot_regions
-    
+    return plot_regions    
 end;
 
 #---------------------------------------
@@ -182,7 +195,7 @@ function plot3d_maculate_regions(
         ) 
     end
         
-    for i in 1:length(maculate_lb)
+    for i in eachindex(maculate_lb)
         
         if plotall == false
             plot_regions = plot(
@@ -198,7 +211,7 @@ function plot3d_maculate_regions(
         color_regions = palette(:devon10)[1+2*hcone[i]]
         plot!(x_lp,y_lp,z_lp, seriestype=:scatter, color=color_regions, label="H$(hcone[i])-cone")
         
-        if plotlims !=nothing
+        if !isnothing(plotlims)
             min, max = plotlims[1], plotlims[2]
             xlims!(min,max)
             ylims!(min,max)
@@ -232,6 +245,7 @@ end;
 # Plot the projection of immaculate line bundles for toric varieties of Picard rank 3
 #---------------------------------------
 function visualize_projection_of_immaculate_linebundles_for_pic3(coeffs::Vector{Int64}; mysize::Tuple{Int64, Int64}=(800,800))
+    
     # We start with para since calculate_planary_parallelograms checks for length
     para = calculate_planary_parallelograms(coeffs)
     p1, p2 = para[1], para[2]
@@ -338,8 +352,7 @@ function visualize_projection_of_immaculate_linebundles_for_pic3(coeffs::Vector{
     annotate!(df_b.x1, df_b.x2, text(string('b'), 11, palette(:tab10)[3], :top, :middle)) 
     end
    
-    return plot_all
-    
+    return plot_all  
 end;
 
 
@@ -566,5 +579,3 @@ function visualize3d_sequence_process_by_layers(
     return plot_seq
 
 end;
-
-

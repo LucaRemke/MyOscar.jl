@@ -107,8 +107,7 @@ end;
 #---------------------------------------
 # representation of the divisor class of a toric divisor
 #---------------------------------------
-function get_representative_of_divisor(td::ToricDivisor)
-    
+function get_representative_of_divisor(td::ToricDivisor)   
     return divisor_class(toric_divisor_class(td)) 
 end;
 
@@ -117,6 +116,7 @@ end;
 # returns the map pi: Div_T -> Cl as matrix
 #---------------------------------------
 function show_generators_and_relations_of_classgroup(v::NormalToricVariety; print_output::Bool=true)
+
     fan_v = polyhedral_fan(v)
     nrays_v = n_rays(fan_v)        
     cl_group = class_group(v)
@@ -196,6 +196,7 @@ end;
 # Calculates the Cartier-Data of a given Cartier-Divisor
 #---------------------------------------
 function calculate_cartier_data(td::ToricDivisor, cones::Bool=true)
+
     # implement a check if divisor is not cartier
     coeffs_td_int = transform_rayvector(coefficients(td))  
     var = toric_variety(td)
@@ -240,7 +241,13 @@ end;
 #---------------------------------------
 # Checks if the input function characterize the nef divisors with coefficients in range
 #---------------------------------------
-function check_nef_conditions(var::NormalToricVariety, range::UnitRange{Int64}, condition_func; elements::Vector{Int64}=ones(Int, n_rays(var)))
+function check_nef_conditions(
+        var::NormalToricVariety, 
+        range::UnitRange{Int64}, 
+        condition_func; 
+        elements::Vector{Int64}=ones(Int, n_rays(var))
+    )
+
     check = true
     
     all_coeffs = generate_vectors(n_rays(polyhedral_fan(var)), range)
@@ -266,7 +273,13 @@ end;
 # Calculates a decomposition of a divisor into two nef divisors
 # Caution when using the input basepoint_choice, an index other than 1 may not exist.
 #---------------------------------------
-function calculate_nef_pair(tv::NormalToricVariety, td::ToricDivisor; show_coeffs::Bool=true, basepoint_choice::Int=1)
+function calculate_nef_pair(
+        tv::NormalToricVariety, 
+        td::ToricDivisor; 
+        show_coeffs::Bool=true, 
+        basepoint_choice::Int=1
+    )
+
     n = torsion_free_rank(class_group(tv))     
     coeffs = Int64[]
     for i in 1:n

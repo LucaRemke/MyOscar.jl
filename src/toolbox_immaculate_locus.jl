@@ -7,42 +7,47 @@
 #---------------------------------------
 # Determine the immaculate line bundles in range
 #---------------------------------------
-function get_immaculate_lb(variety::NormalToricVariety, range::UnitRange{Int64}; 
-    perm=nothing, output_td::Bool=false, status::Bool=false)
+function get_immaculate_lb(
+        variety::NormalToricVariety, 
+        range::UnitRange{Int64}; 
+        perm=nothing, 
+        output_td::Bool=false, 
+        status::Bool=false
+    )
 
-nrays = n_rays(variety)
-n_pic = torsion_free_rank(picard_group(variety)) 
-n_zeros = nrays - n_pic
+    nrays = n_rays(variety)
+    n_pic = torsion_free_rank(picard_group(variety)) 
+    n_zeros = nrays - n_pic
 
-immaculate = Vector{Int64}[];
+    immaculate = Vector{Int64}[];
 
-coeffs = generate_vectors(n_pic, range) 
-    
-for coeff in coeffs
-    coeff_complete = vcat(coeff, fill(0, n_zeros)) 
-    
-    if !isnothing(perm)
-        coeff_complete = coeff_complete[perm]
-    end
-    
-    td = toric_divisor(variety, coeff_complete)
-    lb = toric_line_bundle(td)
-    cohom = all_cohomologies(lb)
-    
-    if status
-        println(coeff_complete) 
-    end
-    
-    if cohom == repeat([0], length(cohom)) 
-        if output_td
-            push!(immaculate, lb)
-        else
-            push!(immaculate, coeff)
+    coeffs = generate_vectors(n_pic, range) 
+        
+    for coeff in coeffs
+        coeff_complete = vcat(coeff, fill(0, n_zeros)) 
+        
+        if !isnothing(perm)
+            coeff_complete = coeff_complete[perm]
+        end
+        
+        td = toric_divisor(variety, coeff_complete)
+        lb = toric_line_bundle(td)
+        cohom = all_cohomologies(lb)
+        
+        if status
+            println(coeff_complete) 
+        end
+        
+        if cohom == repeat([0], length(cohom)) 
+            if output_td
+                push!(immaculate, lb)
+            else
+                push!(immaculate, coeff)
+            end
         end
     end
-end
 
-return immaculate
+    return immaculate
 end;
 
 
@@ -56,6 +61,7 @@ end;
 # Iterates over all subsets of Sigma(1) and checks the cohomologies of -sum(D_rho) rho in subset
 #---------------------------------------
 function calculate_tempting_subsets(var::NormalToricVariety; zero_ray::Bool=false)
+
     v_fan = polyhedral_fan(var)
     nrays = n_rays(v_fan)
     pset_rays = collect(powerset(1:nrays)) 
@@ -87,137 +93,147 @@ end;
 # This approach works if the toric variety is smooth since rho is surjective in this case
 #---------------------------------------
 function search_nontemptings_via_boundary_condition(
-    variety::NormalToricVariety; output_indizes::Bool=true, output_nontemptings::Bool=true)
+        variety::NormalToricVariety; 
+        output_indizes::Bool=true, 
+        output_nontemptings::Bool=true
+    )
 
-nrays_variety = n_rays(variety)
-pset_nrays = collect(powerset(1:nrays_variety)) 
-ray_matrix = Matrix{Int64}(matrix(ZZ, rays(variety)))
-ray_vector = [ray_matrix[row, :] for row in 1:size(ray_matrix, 1)]
+    nrays_variety = n_rays(variety)
+    pset_nrays = collect(powerset(1:nrays_variety)) 
+    ray_matrix = Matrix{Int64}(matrix(ZZ, rays(variety)))
+    ray_vector = [ray_matrix[row, :] for row in 1:size(ray_matrix, 1)]
 
-zeros_im = zeros(Int64, nrays_variety)
-zeros_pim = Matrix{Int64}(transpose(hcat(zeros(Int64, dim(variety)))))
+    zeros_im = zeros(Int64, nrays_variety)
+    zeros_pim = Matrix{Int64}(transpose(hcat(zeros(Int64, dim(variety)))))
 
-output = Vector{Int64}[]
+    output = Vector{Int64}[]
+            
+    for subset in pset_nrays
         
-for subset in pset_nrays
+        B = -ray_matrix
+        
+        B[subset, :] .= B[subset, :] .* -1  
+        P = polyhedron(B, zeros_im)
+        
+        if output_nontemptings            
+            if P != convex_hull(zeros_pim)
+                if output_indizes
+                    push!(output, subset)
+                else
+                    push!(output, ray_vector[subset])
+                end                
+            end
+        else
+            if P == convex_hull(zeros_pim)
+                if output_indizes
+                    push!(output, subset)
+                else
+                    push!(output, ray_vector[subset])
+                end                
+            end
+        end        
     
-    B = -ray_matrix
-    
-    B[subset, :] .= B[subset, :] .* -1  
-    P = polyhedron(B, zeros_im)
-    
-    if output_nontemptings            
-        if P != convex_hull(zeros_pim)
-            if output_indizes
-                push!(output, subset)
-            else
-                push!(output, ray_vector[subset])
-            end                
-        end
-    else
-        if P == convex_hull(zeros_pim)
-            if output_indizes
-                push!(output, subset)
-            else
-                push!(output, ray_vector[subset])
-            end                
-        end
-    end        
-   
-end    
+    end    
 
-return output
+    return output
 end;
 
 #---------------------------------------
 # Give non-temptings via faces of the fan
 #---------------------------------------
 function eliminate_faces_as_temptings(
-    variety::NormalToricVariety; output_indizes::Bool=true, output_nontemptings::Bool=true)
+        variety::NormalToricVariety; 
+        output_indizes::Bool=true, 
+        output_nontemptings::Bool=true
+    )
 
-fan_variety = polyhedral_fan(variety)   
-nrays_variety = n_rays(variety)
-pset_nrays = collect(powerset(1:nrays_variety)) 
-ray_matrix = Matrix{Int64}(matrix(ZZ, rays(variety)))
-ray_vector = [ray_matrix[row, :] for row in 1:size(ray_matrix, 1)]
+    fan_variety = polyhedral_fan(variety)   
+    nrays_variety = n_rays(variety)
+    pset_nrays = collect(powerset(1:nrays_variety)) 
+    ray_matrix = Matrix{Int64}(matrix(ZZ, rays(variety)))
+    ray_vector = [ray_matrix[row, :] for row in 1:size(ray_matrix, 1)]
 
-output = Vector{Int64}[]
+    output = Vector{Int64}[]
 
-for i in 1:dim(fan_variety) 
-    cones_i = cones(fan_variety, i)
-    
-    for j in cones_i
-        rays_matrix_ij = Matrix{Int64}(matrix(ZZ, rays(j)))
-        rays_vector_ij = [rays_matrix_ij[row, :] for row in 1:size(rays_matrix_ij, 1)]
+    for i in 1:dim(fan_variety) 
+        cones_i = cones(fan_variety, i)
         
-        push!(output, indexin(rays_vector_ij, ray_vector)) 
-        push!(output, indexin(setdiff(ray_vector, rays_vector_ij), ray_vector))          
+        for j in cones_i
+            rays_matrix_ij = Matrix{Int64}(matrix(ZZ, rays(j)))
+            rays_vector_ij = [rays_matrix_ij[row, :] for row in eachindex(rays_matrix_ij, 1)]
+            
+            push!(output, indexin(rays_vector_ij, ray_vector)) 
+            push!(output, indexin(setdiff(ray_vector, rays_vector_ij), ray_vector))          
+        end
     end
-end
 
-output = setdiff(pset_nrays, output)
+    output = setdiff(pset_nrays, output)
 
-if output_nontemptings
-    output = setdiff(pset_nrays, output) #eliminate duplicates
-end
+    if output_nontemptings
+        output = setdiff(pset_nrays, output) #eliminate duplicates
+    end
 
-if !output_indizes
-    output = [ray_vector[output[i]] for i in 1:length(output)]
-end
+    if !output_indizes
+        output = [ray_vector[output[i]] for i in eachindex(output)]
+    end
 
-return output
+    return output
 end;
 
 #---------------------------------------
 # Give temptings by determining the primitive collections
 #---------------------------------------
-function get_temptings_as_primitive_collections(variety::NormalToricVariety;
-    output_indizes::Bool=true, output_nontemptings::Bool=true, include_emptyset::Bool=true)
+function get_temptings_as_primitive_collections(
+        variety::NormalToricVariety;
+        output_indizes::Bool=true, 
+        output_nontemptings::Bool=true, 
+        include_emptyset::Bool=true
+    )
 
-nrays_variety = n_rays(variety)
-pset_nrays = collect(powerset(1:nrays_variety)) 
-set_nrays = Set(1:nrays_variety)
-all_sets = [Set(v) for v in pset_nrays]    
-ray_matrix = Matrix{Int64}(matrix(ZZ, rays(variety)))
-ray_vector = [ray_matrix[row, :] for row in 1:size(ray_matrix, 1)]
+    nrays_variety = n_rays(variety)
+    pset_nrays = collect(powerset(1:nrays_variety)) 
+    set_nrays = Set(1:nrays_variety)
+    all_sets = [Set(v) for v in pset_nrays]    
+    ray_matrix = Matrix{Int64}(matrix(ZZ, rays(variety)))
+    ray_vector = [ray_matrix[row, :] for row in 1:size(ray_matrix, 1)]
 
-output = Set{Int64}[]
+    output = Set{Int64}[]
 
-for pc in primitive_collections(variety)
-    diff = setdiff(set_nrays, pc) 
-    push!(output, pc)
-    push!(output, diff) 
-end
+    for pc in primitive_collections(variety)
+        diff = setdiff(set_nrays, pc) 
+        push!(output, pc)
+        push!(output, diff) 
+    end
 
-#remove duplicates
-output = Set(output)
+    #remove duplicates
+    output = Set(output)
 
-if include_emptyset
-    push!(output, Set()) 
-    push!(output, setdiff(set_nrays, Set()))
-end
+    if include_emptyset
+        push!(output, Set()) 
+        push!(output, setdiff(set_nrays, Set()))
+    end
 
-if output_nontemptings
-    output = setdiff(all_sets, output)
-end
+    if output_nontemptings
+        output = setdiff(all_sets, output)
+    end
 
-output = collect.(output)
-output = sort.(output)
-output = sort(output)
-output = sort(output, by=vec -> length(vec)) 
+    output = collect.(output)
+    output = sort.(output)
+    output = sort(output)
+    output = sort(output, by=vec -> length(vec)) 
 
-if !output_indizes
-    output = [ray_vector[output[i]] for i in 1:length(output)]
-end
-    
-return output
-
+    if !output_indizes
+        output = [ray_vector[output[i]] for i in eachindex(output)]
+    end
+        
+    return output
 end;
 
 #---------------------------------------
 # Calculate the images of the cube under pi
 #---------------------------------------
 function get_images_of_cube_vertices(variety::NormalToricVariety; print_output::Bool=true)
+
     pi_v = show_generators_and_relations_of_classgroup(variety; print_output=false)
     nrays_v = n_rays(variety)
     cube_v = cube(nrays_v,-1,0) 
@@ -270,6 +286,7 @@ end;
 # Calculate the immaculate line bundles comming from the cube
 #---------------------------------------
 function get_polytope_of_cube_vertices(variety::NormalToricVariety; print_output::Bool=true)
+
     pi_v = show_generators_and_relations_of_classgroup(variety; print_output=false)
     nrays_v = n_rays(variety)
     cube_v = cube(nrays_v,-1,0) 
@@ -328,8 +345,7 @@ function get_polytope_of_cube_vertices(variety::NormalToricVariety; print_output
         println(i)
     end
     
-    return images_ntemp_vertices
-    
+    return images_ntemp_vertices  
 end;
 
 
@@ -344,6 +360,7 @@ end;
 # Return value is a vector of polyhedrons
 #---------------------------------------
 function get_maculate_regions(variety::NormalToricVariety)
+
     rays_var = rays(variety)
     nrays_var = n_rays(variety)
     dim_pic = torsion_free_rank(picard_group(variety))
@@ -376,6 +393,7 @@ end;
 # if error "Denominator must be 1" occurs, enlarge the cutout
 #---------------------------------------
 function cutout_maculate_regions(variety::NormalToricVariety, cutout::Polyhedron{QQFieldElem})
+
     lp_cutout = transform_rayvector.(lattice_points(cutout))
     temptations = calculate_tempting_subsets(variety)
     maculate_regions = get_maculate_regions(variety)
@@ -420,10 +438,11 @@ end;
 # Prints a complete description of all maculate regions
 #---------------------------------------
 function print_maculate_region_info(variety::NormalToricVariety)
+
     temptings = calculate_tempting_subsets(variety)
     regions = get_maculate_regions(variety)
 
-    for i in 1:length(regions)
+    for i in eachindex(regions)
         region = regions[i]
         tempting = temptings[i]
 
@@ -434,7 +453,6 @@ function print_maculate_region_info(variety::NormalToricVariety)
         println("\t Basepoint $basepoint")
         println("\t Generators $generators")
         i != length(regions) ? println("") : nothing
-
     end
 end;
 
@@ -447,8 +465,8 @@ end;
 # Calculate the seed and the chull of a toric variety of Picard rank 3
 #---------------------------------------
 function get_seed_and_chull_of_toricpic3(l::Tuple, c::Tuple, range::UnitRange{Int64})
-    n = length(l)
-    
+
+    n = length(l)    
     if n != 3
         return "Error: parameter l must have exactly three entries"
     end
@@ -505,6 +523,7 @@ end
 # Calculate the planary parallelograms
 #---------------------------------------
 function calculate_planary_parallelograms(coeffs::Vector{Int64})
+
     if length(coeffs) != 4
         throw(ArgumentError("coeffs must be a vector of length 4")) 
     end
@@ -513,6 +532,5 @@ function calculate_planary_parallelograms(coeffs::Vector{Int64})
     p1 = convex_hull([-a-b-c+2 a-1; -a a-1; -b+d -c-d+1; c+d-2 -c-d+1])
     p2 = convex_hull([-a-b+1 a+b-2; d-1 -d; -a-b+1 a-c; d-1 -b-c-d+2])
     
-    return (p1, p2)
-    
-end
+    return (p1, p2)   
+end;

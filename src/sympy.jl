@@ -17,6 +17,7 @@ using SymPy;
 # Calculates the Cartier-Data of general Cartier-Divisor
 #---------------------------------------
 function calculate_cartier_data(coeffs::Vector{Sym{PyObject}}, var::NormalToricVariety, cones::Bool=true)
+    
     # implement a check if divisor is not cartier
     rays_var = rays(var)
     maxcones_var = maximal_cones(polyhedral_fan(var))
@@ -60,6 +61,7 @@ end;
 # Evaluate Cartier-Data of general Cartier-Divisor for a specific choice of coordinates
 #---------------------------------------
 function evaluate_cartier_data(data::Vector{Any}, symbols::Vector{Sym}, coeffs::Vector{Int64})
+    
     if length(symbols) != length(coeffs)
         throw(ArgumentError("Length of the input vectors does not match.")) 
     end
@@ -80,7 +82,6 @@ function evaluate_cartier_data(data::Vector{Any}, symbols::Vector{Sym}, coeffs::
     end
     
     return all_data
-
 end;
 
 
@@ -92,42 +93,42 @@ end;
 # Pullback phiD of a divisor D via a blowup phi
 #---------------------------------------
 function pullback_divisor_of_blowup(
-    morphism::Oscar.ToricBlowdownMorphism{NormalToricVariety, NormalToricVariety},
-    divisor::Vector{Sym{PyObject}}
-)
-origin = codomain(morphism)
-target = domain(morphism)
+        morphism::Oscar.ToricBlowdownMorphism{NormalToricVariety, NormalToricVariety},
+        divisor::Vector{Sym{PyObject}}
+    )
+    origin = codomain(morphism)
+    target = domain(morphism)
 
-cartierdata_origin = calculate_cartier_data(divisor, origin, true)
-cartierdata_mapped = []
+    cartierdata_origin = calculate_cartier_data(divisor, origin, true)
+    cartierdata_mapped = []
 
-for data in cartierdata_origin
-    cone = data[1]
-    dim_cone = dim(cone)
-    for c in cones(target, dim_cone)
-        if issubset(c, cone) == true
-            new_data = [rays(c), data[2]]
-            push!(cartierdata_mapped, new_data)
-            break
-        end
-    end
-end
-
-divisor_mapped = Sym{PyObject}[]
-
-for r in rays(target)
-    for data in cartierdata_mapped
+    for data in cartierdata_origin
         cone = data[1]
-        if r in cone
-            r = transform_rayvector(r)
-            lambda = -transpose(r)*data[2]
-            push!(divisor_mapped, lambda)
-            break
+        dim_cone = dim(cone)
+        for c in cones(target, dim_cone)
+            if issubset(c, cone) == true
+                new_data = [rays(c), data[2]]
+                push!(cartierdata_mapped, new_data)
+                break
+            end
         end
     end
-end
 
-return divisor_mapped
+    divisor_mapped = Sym{PyObject}[]
+
+    for r in rays(target)
+        for data in cartierdata_mapped
+            cone = data[1]
+            if r in cone
+                r = transform_rayvector(r)
+                lambda = -transpose(r)*data[2]
+                push!(divisor_mapped, lambda)
+                break
+            end
+        end
+    end
+
+    return divisor_mapped
 end;
 
 
@@ -167,83 +168,83 @@ end;
 # Calculate the meses of a given list V modulo helixing
 #---------------------------------------
 function calculate_exceptional_sequences_modulo_helixing(
-    V::Vector{Vector{Vector{T}}},
-    cd::Vector{Int64}
-) where T
-    
-configuration = Vector{Vector{T}}[]
+        V::Vector{Vector{Vector{T}}},
+        cd::Vector{Int64}
+    ) where T
+        
+    configuration = Vector{Vector{T}}[]
 
-for v in V
-    set = Set(configuration)
-    hex = calculate_all_helixing(v, cd)
-    check = false
-    for h in hex
-        if unify_sequence(h) in set
-            check = true
-            break
+    for v in V
+        set = Set(configuration)
+        hex = calculate_all_helixing(v, cd)
+        check = false
+        for h in hex
+            if unify_sequence(h) in set
+                check = true
+                break
+            end
+        end
+        if check == false
+            push!(configuration, v)
         end
     end
-    if check == false
-        push!(configuration, v)
-    end
-end
 
-return configuration
+    return configuration
 end;
 
 #---------------------------------------
 # Calculate the meses of a given list V modulo dualizing
 #---------------------------------------
 function calculate_exceptional_sequences_modulo_dualizing(
-    V::Vector{Vector{Vector{T}}},
-    cd::Vector{Int64}
-) where T
-    
-    configuration = Vector{Vector{T}}[]
+        V::Vector{Vector{Vector{T}}},
+        cd::Vector{Int64}
+    ) where T
+        
+        configuration = Vector{Vector{T}}[]
 
-    for v in V
-        set = Set(configuration)
-        dual = calculate_dualizing(v, cd)
+        for v in V
+            set = Set(configuration)
+            dual = calculate_dualizing(v, cd)
 
-        if !(unify_sequence(dual) in set)
-            push!(configuration, v)
+            if !(unify_sequence(dual) in set)
+                push!(configuration, v)
+            end
         end
-    end
 
-return configuration
+    return configuration
 end;
 
 #---------------------------------------
 # Checks which flippings gives exceptional sequences
 #---------------------------------------
 function are_flippings_exceptional(
-    var::Symbol, 
-    V::Vector{Vector{Vector{T}}};
-    par::Union{Int, Nothing}=nothing,
-    s::Int64=1
-) where T
+        var::Symbol, 
+        V::Vector{Vector{Vector{T}}};
+        par::Union{Int, Nothing}=nothing,
+        s::Int64=1
+    ) where T
 
-l = length(V[1][1])
-perm = collect(permutations(1:l)) 
+    l = length(V[1][1])
+    perm = collect(permutations(1:l)) 
 
-flipping_all = Any[] #I got problems with push! when defining a precise type here
+    flipping_all = Any[] #I got problems with push! when defining a precise type here
 
-for p in perm
-    flipping_p = Vector{Vector{T}}[]
-    cond = true
-    for v in V
-        flipping_p_v = calculate_flipping(v,p)
-        push!(flipping_p, flipping_p_v)
-        if !(is_exceptional(var, flipping_p_v; param=par, sgn=s) == true)
-            cond = false
+    for p in perm
+        flipping_p = Vector{Vector{T}}[]
+        cond = true
+        for v in V
+            flipping_p_v = calculate_flipping(v,p)
+            push!(flipping_p, flipping_p_v)
+            if !(is_exceptional(var, flipping_p_v; param=par, sgn=s) == true)
+                cond = false
+            end
         end
-    end
-    insert = (p, flipping_p)
-    push!(flipping_all, insert) 
-    println("For permutation $p the sequences are exceptional: $cond")
-end           
+        insert = (p, flipping_p)
+        push!(flipping_all, insert) 
+        println("For permutation $p the sequences are exceptional: $cond")
+    end           
 
-return flipping_all
+    return flipping_all
 end;
 
 #---------------------------------------
@@ -420,13 +421,13 @@ end;
 # Checks if each single encoding fits into a general encoding where inputs are vectors
 #---------------------------------------
 function check_single_configurations_vector(
-    V_general::Vector{Vector{Sym{PyObject}}},
-    V_single::Vector{Vector{Int64}}
-)
-found = find_sequence_in_configurations(V_single, [V_general])
-if found == false
-    return false
-else
-    return true
-end
+        V_general::Vector{Vector{Sym{PyObject}}},
+        V_single::Vector{Vector{Int64}}
+    )
+    found = find_sequence_in_configurations(V_single, [V_general])
+    if found == false
+        return false
+    else
+        return true
+    end
 end;

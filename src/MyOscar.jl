@@ -25,8 +25,6 @@ export sort_points_clockwise
 export print_latex_code
 
 
-
-
 ########################################
 ########################################
 include("toolbox_toric_varieties.jl")
@@ -46,6 +44,7 @@ export check_nef_conditions
 export calculate_nef_pair
 
 export get_exceptional_divisor
+
 
 ########################################
 ########################################
@@ -96,7 +95,6 @@ export calculate_dualizing
 export calculate_flipping
 
 
-
 ########################################
 ########################################
 include("toolbox_visualization.jl")
@@ -115,17 +113,24 @@ export visualize3d_sequence_moving_lines
 export visualize3d_sequence_process_by_layers
 
 
+########################################
+########################################
+include("toolbox_sympy.jl")
+# add function if it works when pushing on github
 
+
+#=
+These function might be needed for older code
 ##########
-include("toolbox_mes.jl")
+#include("toolbox_mes.jl")
 
-export generate_vectors_from_ranges
-export is_in_locus_of_pentagon
-export advanced_extend_sequences
-export advanced_brute_force_exseq_for_pentagon_in_zero
-export group_by_type_sequence
-export plot_type
-export plot_type_allseq
+#export generate_vectors_from_ranges
+#export is_in_locus_of_pentagon
+#export advanced_extend_sequences
+#export advanced_brute_force_exseq_for_pentagon_in_zero
+#export group_by_type_sequence
+#export plot_type
+#export plot_type_allseq
 
 
 ##########
@@ -137,17 +142,6 @@ export plot_type_allseq
 #export has_duplicates
 #export calculate_inverted_mes
 #export search_duplicates
+=#
 
-
-
-
-##########
-#include("toolbox_mes.jl")
-
-
-##########
-include("toolbox_sympy.jl")
-# add function if it works when pushing on github
-
-
-end
+end;
