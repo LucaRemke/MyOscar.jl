@@ -40,6 +40,13 @@ nimmloc[:hr] = NegativeImmaculateLocus(:hr,
     (difference, param, sgn) -> all(diff -> diff == [1,0] || diff == [1-param,2] || diff[2] == 1, sign(sgn)*difference)
 )
 
+nimmloc[:twisted540122] = NegativeImmaculateLocus(:twisted540122,
+    (difference, param, sgn) -> all(diff -> diff[2] == 1 || diff[2] == 2 || diff[2] == 3 || 
+        diff == [1,0] || diff == [2,0] || diff == [3,0] || diff == [4,0] || diff == [3,-1] || diff == [4,-1] ||
+        diff == [-1,4] || diff == [-2,4] || diff == [-3,4] || diff == [-4,4] || diff == [-3,5] || diff == [-4,5],
+        sign(sgn)*difference)
+)
+
 nimmloc[:pentagon] = NegativeImmaculateLocus(:pentagon,
     (difference, param, sgn) -> all(diff -> diff == [1,1,-1] || diff == [0,0,2] || 
                 (diff[3] == 0 && (diff[1] == 1 || diff[2] == 1)) ||
@@ -554,6 +561,124 @@ function calculate_flipping(V::Vector{Vector{T}}, perm::Vector{Int64}) where T
   
     return flipping
 end;
+
+
+########################################
+# FULLNESS CONDITIONS
+########################################
+
+#---------------------------------------
+# Checks if ph_ac(E1,...,En) > -dim X, compare Krah
+#---------------------------------------
+function is_not_full_by_krah(seq::Vector{Vector{Int64}}, variety::NormalToricVariety)
+    
+    l = length(seq)    
+    if l != n_maximal_cones(polyhedral_fan(variety))
+        throw(ErrorException("The sequence is not maximal and therefore not full")) 
+    end
+    
+    for i in 2:l
+        seq_sub = seq[1:i-1]
+        seq_i = seq[i]
+        diff = [seq_i - sub for sub in seq_sub]
+        for d in diff
+            tdc = toric_divisor_class(variety, d)
+            tl = toric_line_bundle(toric_divisor(tdc)) 
+            h0 = cohomology(tl, 0)
+            if h0 != 0
+                return false
+            end
+        end
+    end
+    
+    return true
+end;
+
+#---------------------------------------
+# Calculates the anticanonical pseudoheight
+#---------------------------------------
+function calculate_anticanonical_pseudoheight(seq::Vector{Vector{Int64}}, variety::NormalToricVariety)
+    
+    l = length(seq)    
+    if l != n_maximal_cones(polyhedral_fan(variety))
+        throw(ErrorException("The sequence is not maximal and therefore not full")) 
+    end
+    
+    # calculate all possible e(Ei,Ej)
+    relative_height = Dict{Vector{Int64}, Float64}()
+    for i in 1:l
+        for j in i+1:l
+            seq_i, seq_j = seq[i], seq[j]
+            diff_ij = seq_j - seq_i
+            tdc = toric_divisor_class(variety, diff_ij)
+            tl = toric_line_bundle(toric_divisor(tdc)) 
+            cohom = all_cohomologies(tl)
+            k = findfirst(x -> x != 0, cohom)
+            if isnothing(k)
+                k = Inf
+            end
+            
+            relative_height[[i,j]] = k-1
+        end
+    end
+    
+    # calculate all possile values for which the infimum is build
+    comb_all = filter(x -> length(x)>1, collect(combinations(1:l))) 
+    
+    # calculate the divisor class of the anticanonical line bundle
+    acdc = divisor_class(anticanonical_divisor_class(variety)) 
+    var_rank = torsion_free_rank(class_group(variety))   
+    acdc_int = [Int64(acdc[i]) for i in 1:var_rank]
+        
+    # calculate the minimum
+    # for length 0 we have e(Ei,Ei+wX^-1)=min H^l(wX^-1)
+    wx_cohom = all_cohomologies(anticanonical_bundle(variety)) 
+    wx_k = findfirst(x -> x != 0, wx_cohom)
+    if isnothing(wx_k)
+        wx_k = Inf
+    end
+    ph_ac = wx_k-1
+    
+    for comb in comb_all
+        l_comb = length(comb)
+        max_comb, min_comb = maximum(comb), minimum(comb)
+        td_wx = toric_divisor_class(variety, -seq[max_comb] + seq[min_comb] + acdc_int)
+        tl_wx = toric_line_bundle(toric_divisor(td_wx)) 
+        cohom_wx = all_cohomologies(tl_wx)
+        k_wx = findfirst(x -> x != 0, cohom_wx)
+        if isnothing(k_wx)
+            k_wx = Inf
+        end
+        ph_ac_comb = k_wx-1
+        
+        sub_comb = [[comb[a], comb[b]] for a in 1:l_comb for b in a+1:l_comb]
+        for s in sub_comb
+            val_s = relative_height[s]
+            ph_ac_comb += val_s
+        end
+        
+        ph_ac_comb += -l_comb
+        
+        if ph_ac_comb < ph_ac
+            ph_ac = ph_ac_comb
+        end
+    end
+    
+    ph_ac = Int64(ph_ac)
+    
+    return ph_ac
+end;
+
+
+
+
+
+
+
+
+
+
+
 
 
 # old functions

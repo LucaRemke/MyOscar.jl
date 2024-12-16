@@ -93,7 +93,7 @@ end;
 # Pullback phiD of a divisor D via a blowup phi
 #---------------------------------------
 function pullback_divisor_of_blowup(
-        morphism::Oscar.ToricBlowdownMorphism{NormalToricVariety, NormalToricVariety},
+        morphism::Oscar.ToricBlowupMorphism{NormalToricVariety, NormalToricVariety},
         divisor::Vector{Sym{PyObject}}
     )
     origin = codomain(morphism)

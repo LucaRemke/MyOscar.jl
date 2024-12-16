@@ -19,6 +19,31 @@ function generate_vectors(n::Int, r::UnitRange{Int})
 end;
 
 #---------------------------------------
+# Returns all possible vectors with values in the input ranges
+#---------------------------------------
+
+function generate_vectors_from_ranges(r::Vector{UnitRange{T}}) where T
+    # Base case: If there's only one range, return the vectors in that range
+    if length(r) == 1
+        return [elem for elem in r[1]]
+    end
+    
+    # Recursive case: Generate vectors for the first range
+    vectors = generate_vectors_from_ranges(r[1:end-1])
+    new_range = r[end]
+    
+    # Extend each vector with elements from the last range
+    new_vectors = Vector{Int}[]
+    for vec in vectors
+        for elem in new_range
+            push!(new_vectors, [vec..., elem])
+        end
+    end
+    
+    return new_vectors
+end;
+
+#---------------------------------------
 # Transforms a RayVector or Vector with ring elements into an integer vector
 #---------------------------------------
 function transform_rayvector(R::Any)

@@ -344,8 +344,8 @@ end;
 #---------------------------------------
 # Gives the exceptional divisor of a blowup as Vector{Int64}
 #---------------------------------------
-function get_exceptional_divisor(morphism::Oscar.ToricBlowdownMorphism{NormalToricVariety, NormalToricVariety})
-    exc_div = exceptional_divisor(morphism)
+function get_exceptional_divisor(morphism::Oscar.ToricBlowupMorphism{NormalToricVariety, NormalToricVariety})
+    exc_div = exceptional_prime_divisor(morphism)
     blow_up = domain(morphism)
     cl_rank = torsion_free_rank(class_group(blow_up))
     E = transform_rayvector([get_representative_of_divisor(exc_div)[i] for i in 1:cl_rank])

@@ -18,6 +18,7 @@ using Combinatorics
 include("toolbox_general.jl")
 
 export generate_vectors
+export generate_vectors_from_ranges
 export transform_rayvector
 export convert_to_df
 export sort_points_clockwise
@@ -70,6 +71,20 @@ export calculate_planary_parallelograms
 
 ########################################
 ########################################
+include("toolbox_infection.jl")
+
+export calculate_infectionstep_of_pentagon
+export search_infections_of_pentagon
+export search_infections_of_pentagon_bool
+export visualize_infection_of_pentagon
+
+export calculate_infectionstep_of_hexagon
+export search_infections_of_hexagon
+export search_infections_of_hexagon_bool
+
+
+########################################
+########################################
 include("toolbox_exceptional_sequences.jl")
 
 export nimmloc
@@ -93,6 +108,9 @@ export calculate_all_helixing
 export calculate_dualizing
 
 export calculate_flipping
+
+export is_not_full_by_krah
+export calculate_anticanonical_pseudoheight
 
 
 ########################################

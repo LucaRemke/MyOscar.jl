@@ -1,3 +1,5 @@
+using Plots.PlotMeasures
+
 ########################################
 # PLOTING GENERAL DATA
 ########################################
@@ -366,6 +368,8 @@ end;
 function visualize3d_sequence_by_layers(
         seq::Vector{Vector{T}},
         plot_area::Vector{UnitRange{Int64}};
+        x_shift::Float64=0.0,
+        y_shift::Float64=0.0,
         cam::Tuple{Int64, Int64}=(10,20)
     ) where T
 
@@ -417,8 +421,8 @@ function visualize3d_sequence_by_layers(
 
         for i in labeling                
             annotate!([(
-                df_seq.x1[i], df_seq.x2[i], df_seq.x3[i], 
-                text("$(i-1)", 11, :green, :left, :bottom)
+                df_seq.x1[i] + x_shift, df_seq.x2[i] + y_shift, df_seq.x3[i], 
+                text("$(i-1)", 11, :green, :right)
             )])
         end 
 
@@ -503,6 +507,8 @@ end;
 function visualize3d_sequence_process_by_layers(
         seq::Vector{Vector{Vector{T}}},
         plot_area::Vector{UnitRange{Int64}};
+        x_shift::Float64=0.0,
+        y_shift::Float64=0.0,
         cam::Tuple{Int64, Int64}=(10,20)
     ) where T
 
@@ -567,8 +573,8 @@ function visualize3d_sequence_process_by_layers(
 
             for i in labeling                
                 annotate!([(
-                    df.x1[i], df.x2[i], df.x3[i], 
-                    text("$(i-1)", 11, :green, :left, :bottom)
+                    df.x1[i] + x_shift, df.x2[i] + y_shift, df.x3[i], 
+                    text("$(i-1)", 11, :green, :right)
                 )])
             end
         end
