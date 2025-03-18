@@ -87,7 +87,8 @@ end;
 #---------------------------------------
 function print_latex_code(
         V::Vector{Vector{Vector{Vector{T}}}},
-        path::String
+        path::String,
+        name::String
     ) where T
 
     n_V = length(V)
@@ -106,7 +107,7 @@ function print_latex_code(
         string *= "\\renewcommand{\\arraystretch}{2.5}\n"    
         string *= cols_string
         string *= "\\hline\n"
-        string *= "S_{$(index_hex)}^{0} &\n"
+        string *= "$(name)_{$(index_hex)}^{0} &\n"
         string *= "\\begin{psmallmatrix}\n"
         
         for row in 1:n_ele
@@ -121,7 +122,7 @@ function print_latex_code(
         string *= "&\n"
 
         for helex in 1:n_seq-1
-            string *= "S_{$(index_hex)}^{$(helex)} &\n"
+            string *= "$(name)_{$(index_hex)}^{$(helex)} &\n"
             string *= "\\begin{psmallmatrix}\n"
 
             for row in 1:n_ele

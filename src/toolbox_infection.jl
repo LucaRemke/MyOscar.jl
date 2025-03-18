@@ -17,14 +17,14 @@ function calculate_infectionstep_of_pentagon(
     
     # Define rules as tuples: (offsets to check, offset to apply if rule matches)
     rules = [
-        ([ [0,0,0], [1,0,0], [1,1,-1] ], [2,1,-1]),
-        ([ [0,0,0], [-1,0,0], [-1,-1,1] ], [-2,-1,1]),
-        ([ [0,0,0], [1,0,0], [0,-1,1] ], [1,-1,1]),
-        ([ [0,0,0], [-1,0,0], [0,1,-1] ], [-1,1,-1]),
+        ([ [0,0,0], [1,1,-1], [1,0,0] ], [2,1,-1]),
+        ([ [0,0,0], [-1,-1,1], [-1,0,0] ], [-2,-1,1]),
+        ([ [0,0,0], [0,-1,1], [1,0,0] ], [1,-1,1]),
+        ([ [0,0,0], [0,1,-1], [-1,0,0] ], [-1,1,-1]),
         ([ [0,0,0], [0,1,0], [1,1,-1] ], [1,2,-1]),
         ([ [0,0,0], [0,-1,0], [-1,-1,1] ], [-1,-2,1]),
-        ([ [0,0,0], [0,1,0], [-1,0,1] ], [-1,1,1]),
-        ([ [0,0,0], [0,-1,0], [1,0,-1] ], [1,-1,-1]),
+        ([ [0,0,0], [-1,0,1], [0,1,0] ], [-1,1,1]),
+        ([ [0,0,0], [1,0,-1], [0,-1,0] ], [1,-1,-1]),
         ([ [0,0,0], [0,-1,1], [-1,0,1] ], [-1,-1,2]),
         ([ [0,0,0], [0,1,-1], [1,0,-1] ], [1,1,-2])
     ]
@@ -44,7 +44,13 @@ function calculate_infectionstep_of_pentagon(
 
                 if is_empty(bound) || (infection in bound)
                     if print_info
-                        println("Rule $rule_number applied for $vec \t --> $infection")
+                        v2 = target_vectors[2]
+                        v3 = target_vectors[3]
+                        superscript = rule_number % 2 == 1 ? "+" : "-"
+                        subscript = ceil(Int, rule_number / 2)
+
+                        #println("R$(subscript)$(superscript): $vec, $v2, $v3 \t --> $infection")
+                        println("$(Tuple(infection)) \\xleftarrow{R_$(subscript)^$(superscript)} $(Tuple(vec)), $(Tuple(v2)), $(Tuple(v3))")
                     end
                     push!(infected_points, infection)
                 end                
@@ -243,7 +249,18 @@ for vec in seq
 
             if is_empty(bound) || (infection in bound)
                 if print_info
-                    println("Rule $rule_number applied for $vec \t --> $infection")
+                    v2 = target_vectors[2]
+                    v3 = target_vectors[3]
+                    superscript = rule_number % 2 == 1 ? "+" : "-"
+                    subscript = ceil(Int, rule_number / 2)
+
+                    target_set = Set([-5, -4, -3, -2, 3, 4, 5])
+
+                    if !any(x -> x in target_set, infection)
+
+                    #println("R$(subscript)$(superscript): $vec, $v2, $v3 \t --> $infection")
+                    println("$(Tuple(infection)) &\\xleftarrow{R_$(subscript)^$(superscript)} $(Tuple(vec)), $(Tuple(v2)), $(Tuple(v3)) \\\\[-0.25cm]")
+                    end
                 end
                 push!(infected_points, infection)
             end                
