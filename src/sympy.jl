@@ -297,20 +297,26 @@ function find_sequence_in_configurations(
         seqs_int::Vector{Vector{Int64}},
         seqs_p::Vector{Vector{Vector{Sym{PyObject}}}};
         return_sequence::Bool=false
-    )   
+    )
+    
+    found = Vector{Vector{Sym{PyObject}}}[]
 
     for seq_p in seqs_p
         seq_p_subst = substitute_configuration(seqs_int, seq_p)
         if seq_p_subst == seqs_int
             if return_sequence == true
-                return seq_p
+                push!(found, seq_p)
             else
                 return true
             end
         end
     end
 
-    return false
+    if return_sequence == true
+        return found
+    else
+        return false
+    end;
 end;
 
 #---------------------------------------

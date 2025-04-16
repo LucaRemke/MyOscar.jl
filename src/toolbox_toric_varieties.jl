@@ -185,7 +185,19 @@ function show_generators_and_relations_of_classgroup(v::NormalToricVariety; prin
     
     if print_output
         println()
-        println("The map pi: Div_T(X) --> Cl(X) is given by the output matrix")
+        println("The map pi: Div_T(X) --> Cl(X) is given by the matrix")
+        for row in eachrow(mat_pi)
+            println(join(row, " "))
+        end
+    end
+    
+    if print_output
+        anti_coefs = ones(Int64, nrays_v)
+        anti = mat_pi * anti_coefs
+        ample = is_ample(toric_divisor(v, anti_coefs))
+        println()
+        println("The anticanonical divisor class is $anti")
+        println("The toric variety is Fano: $ample")
     end
      
     return mat_pi

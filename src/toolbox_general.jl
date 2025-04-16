@@ -57,6 +57,18 @@ function transform_rayvector(R::Any)
 end;
 
 #---------------------------------------
+# Transforms a Sequence of Type T into a integer sequence
+#---------------------------------------
+function transform_raysequence(seq::Vector{Vector{T}}) where T
+    int_seq = Vector{Int64}[]
+    for vec in seq
+        int_vec = transform_rayvector(vec)
+        push!(int_seq, int_vec)  
+    end
+    return int_seq
+end;
+
+#---------------------------------------
 # Convert a vector of vectors into a dataframe
 #---------------------------------------
 function convert_to_df(vec::Vector{Vector{T}}) where T

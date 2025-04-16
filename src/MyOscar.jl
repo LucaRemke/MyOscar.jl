@@ -11,6 +11,7 @@ using DataFrames
 using CSV
 using LinearAlgebra
 using Combinatorics
+using Serialization
 
 
 ########################################
@@ -20,6 +21,7 @@ include("toolbox_general.jl")
 export generate_vectors
 export generate_vectors_from_ranges
 export transform_rayvector
+export transform_raysequence
 export convert_to_df
 export sort_points_clockwise
 
