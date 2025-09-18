@@ -10,7 +10,8 @@
 function calculate_infectionstep_of_pentagon(
         seq::Vector{Vector{Int64}}; 
         bound::Vector{Vector{Int64}}=Vector{Int64}[], 
-        print_info::Bool=true
+        print_info::Bool=true,
+        print_latex::Bool=false
     )
     seq_set = Set(seq)
     infected_points = Vector{Int64}[]
@@ -49,8 +50,11 @@ function calculate_infectionstep_of_pentagon(
                         superscript = rule_number % 2 == 1 ? "+" : "-"
                         subscript = ceil(Int, rule_number / 2)
 
-                        #println("R$(subscript)$(superscript): $vec, $v2, $v3 \t --> $infection")
-                        println("$(Tuple(infection)) \\xleftarrow{R_$(subscript)^$(superscript)} $(Tuple(vec)), $(Tuple(v2)), $(Tuple(v3))")
+                        if print_latex
+                            println("$(Tuple(infection)) &\\xleftarrow{R_$(subscript)^$(superscript)} $(Tuple(vec)), $(Tuple(v2)), $(Tuple(v3)) \\\\[-0.25cm]")
+                        else
+                            println("$(Tuple(infection)) using R_$(subscript)^$(superscript) for $(Tuple(vec)), $(Tuple(v2)), $(Tuple(v3))")
+                        end
                     end
                     push!(infected_points, infection)
                 end                
@@ -78,7 +82,8 @@ function search_infections_of_pentagon(
         steps::Int64, 
         check_points::Set{Vector{Int64}};
         bound::Vector{Vector{Int64}}=Vector{Int64}[],
-        print_info::Bool=true
+        print_info::Bool=true,
+        print_latex::Bool=false
     )
     all_infections = seq
     
@@ -93,7 +98,7 @@ function search_infections_of_pentagon(
         end
 
         old_infection = copy(all_infections)
-        all_infections = calculate_infectionstep_of_pentagon(all_infections; bound=bound, print_info=print_info)
+        all_infections = calculate_infectionstep_of_pentagon(all_infections; bound=bound, print_info=print_info, print_latex=print_latex)
         new_infections = setdiff(all_infections, old_infection)
         
         if issubset(check_points, Set(all_infections)) 
@@ -207,7 +212,8 @@ end;
 function calculate_infectionstep_of_hexagon(
     seq::Vector{Vector{Int64}}; 
     bound::Vector{Vector{Int64}}=Vector{Int64}[], 
-    print_info::Bool=true
+    print_info::Bool=true,
+    print_latex::Bool=false
 )
 seq_set = Set(seq)
 infected_points = Vector{Int64}[]
@@ -257,9 +263,11 @@ for vec in seq
                     target_set = Set([-5, -4, -3, -2, 3, 4, 5])
 
                     if !any(x -> x in target_set, infection)
-
-                    #println("R$(subscript)$(superscript): $vec, $v2, $v3 \t --> $infection")
-                    println("$(Tuple(infection)) &\\xleftarrow{R_$(subscript)^$(superscript)} $(Tuple(vec)), $(Tuple(v2)), $(Tuple(v3)) \\\\[-0.25cm]")
+                        if print_latex
+                            println("$(Tuple(infection)) &\\xleftarrow{R_$(subscript)^$(superscript)} $(Tuple(vec)), $(Tuple(v2)), $(Tuple(v3)) \\\\[-0.25cm]")
+                        else
+                            println("$(Tuple(infection)) using R_$(subscript)^$(superscript) for $(Tuple(vec)), $(Tuple(v2)), $(Tuple(v3))")
+                        end                        
                     end
                 end
                 push!(infected_points, infection)
@@ -288,7 +296,8 @@ function search_infections_of_hexagon(
     steps::Int64, 
     check_points::Set{Vector{Int64}};
     bound::Vector{Vector{Int64}}=Vector{Int64}[],
-    print_info::Bool=true
+    print_info::Bool=true,
+    print_latex::Bool=false
 )
 all_infections = seq
 
@@ -303,7 +312,7 @@ for i in 1:steps
     end
 
     old_infection = copy(all_infections)
-    all_infections = calculate_infectionstep_of_hexagon(all_infections; bound=bound, print_info=print_info)
+    all_infections = calculate_infectionstep_of_hexagon(all_infections; bound=bound, print_info=print_info, print_latex=print_latex)
     new_infections = setdiff(all_infections, old_infection)
     
     if issubset(check_points, Set(all_infections)) 
@@ -335,16 +344,28 @@ end;
 #---------------------------------------
 # Checks if the searching for infection with input spreader is successful for the hexagon
 #---------------------------------------
-function search_infections_of_hexagon_bool(seq::Vector{Vector{Int64}}, steps::Int64, check_points::Set{Vector{Int64}})
-all_infections = seq  
+function search_infections_of_hexagon_bool(
+        seq::Vector{Vector{Int64}}, 
+        steps::Int64, 
+        check_points::Set{Vector{Int64}}
+    )
+    all_infections = seq  
 
-for i in 1:steps
-    all_infections = calculate_infectionstep_of_hexagon(all_infections; print_info=false)
-    
-    if issubset(check_points, Set(all_infections))
-        return [true, i]
-    end            
-end
+    for i in 1:steps
+        new_infections = calculate_infectionstep_of_hexagon(all_infections; print_info=false)
 
-return [false, nothing]
+        # Check if all check_points are now infected
+        if issubset(check_points, Set(new_infections))
+            return [true, i]
+        else
+            # Stop if no change compared to previous step
+            if new_infections == all_infections            
+                return [false, nothing]
+            end
+        end
+
+        all_infections = new_infections
+    end
+
+    return [false, nothing]
 end;
