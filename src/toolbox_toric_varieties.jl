@@ -1,153 +1,262 @@
 ########################################
-# DEFINITION OF TORIC VARIETIES
-########################################
-# Functions that constructs toric varieties with our ordering of the rays and maximal cones
-# the optional parameter non_redundant = true is mandatory for this purpose
+# DEFINITION OF CERTAIN TORIC VARIETIES
 ########################################
 
 #---------------------------------------
-# Defines the n-dimensional projective space
+# Construction of important toric varieties such that the labeling of the rays is fixed
+# The optional parameter non_redundant = true is mandatory for this purpose
 #---------------------------------------
+
+
+@doc raw"""
+    define_projective_space(n::Int)
+
+Construct the n-dimensional projective space with fixed labeling of the rays.
+
+# Examples
+```jldoctest
+julia> P2 = define_projective_space(2)
+Normal toric variety
+
+```
+"""
 function define_projective_space(n::Int)
-    ray_generators = Vector{Int64}[]
-    gen_0 = [-1 for i in 1:n]
-    push!(ray_generators, gen_0)
+    # Ray generators
+    ray_generators = Vector{Vector{Int}}()
+    # e_0
+    push!(ray_generators, fill(-1, n))
     
+    # e_1,...,e_n
+    append!(ray_generators, [zeros(Int, n) for _ in 1:n])
     for i in 1:n
-        gen = [j == i ? 1 : 0 for j in 1:n]
-        push!(ray_generators, gen)
+        ray_generators[i+1][i] = 1
     end
     
-    max_cones = Vector{Int64}[]
+    #Maximal cones
+    max_cones = [filter(j -> j != i, 1:n+1) for i in 1:n+1]
     
-    for i in 1:n+1
-        mcone = [j for j in 1:n+1 if j != i]
-        push!(max_cones, mcone)
-    end
-    
-    P = normal_toric_variety(max_cones, ray_generators, non_redundant = true)
-    
-    return P
-end;
+    return normal_toric_variety(max_cones, ray_generators, non_redundant = true)
+end
 
-#---------------------------------------
-# The projective surface
-# The order of the rays differs from define_projective_space(n::Int)
-#---------------------------------------
+
+@doc raw"""
+    define_projective_surface()
+
+Construct the projective surface with fixed labeling of the rays.
+The labeling of the rays differs from define_projective_space(n::Int)
+
+# Examples
+```jldoctest
+julia> P2 = define_projective_surface()
+Normal toric variety
+
+```
+"""
 function define_projective_surface()
-    ray_generators = [[0,1], [-1,-1], [1,0]];
-    max_cones = [[1,2], [2,3], [3,1]];
-    p2 = normal_toric_variety(max_cones, ray_generators, non_redundant = true)
-    
-    return p2
-end;
+    ray_generators = [[0,1], [-1,-1], [1,0]]
+    max_cones = [[1,2], [2,3], [3,1]]
+    return normal_toric_variety(max_cones, ray_generators, non_redundant = true)
+end
 
-#---------------------------------------
-# Defines the r-th Hirzebruch surface
-#---------------------------------------
-function define_hirzebruch_surface(r::Int)    
+
+@doc raw"""
+    define_hirzebruch_surface(r::Int)
+
+Construct the r-th Hirzebruch surface with fixed labeling of the rays.
+
+# Examples
+```jldoctest
+julia> H2 = define_hirzebruch_surface(2)
+Normal toric variety
+
+```
+"""
+function define_hirzebruch_surface(r::Int)
     ray_generators = [[0,1], [-r,-1], [1,0], [-1,0]]
     max_cones = [[1,4], [4,2], [2,3], [3,1]]
-    hr = normal_toric_variety(max_cones, ray_generators, non_redundant = true)
+    return normal_toric_variety(max_cones, ray_generators, non_redundant = true)
+end
 
-    return hr
-end;
 
-#---------------------------------------
-# Defines the product P1*P1
-#---------------------------------------
+@doc raw"""
+    define_pp()
+
+Construct (P^1)^2 with fixed labeling of the rays.
+
+# Examples
+```jldoctest
+julia> pp = define_pp()
+Normal toric variety
+
+```
+"""
 function define_pp()
-    ray_generators = [[1,0], [-1,0], [0,1], [0,-1]];
-    max_cones = [[1,3], [1,4], [2,4], [2,3]];
-    pp = normal_toric_variety(max_cones, ray_generators, non_redundant = true)
-    
-    return pp
-end;
+    ray_generators = [[1,0], [-1,0], [0,1], [0,-1]]
+    max_cones = [[1,3], [1,4], [2,4], [2,3]]
+    return normal_toric_variety(max_cones, ray_generators, non_redundant = true)
+end
 
-#---------------------------------------
-# Defines the product P1*P1*P1
-#---------------------------------------
+
+@doc raw"""
+    define_ppp()
+
+Construct (P^1)^3 with fixed labeling of the rays.
+
+# Examples
+```jldoctest
+julia> ppp = define_ppp()
+Normal toric variety
+
+```
+"""
 function define_ppp()
-    ray_generators = [[1,0,0], [-1,0,0], [0,1,0], [0,-1,0], [0,0,1], [0,0,-1]];
-    max_cones = [[1,3,5], [1,3,6], [1,4,5], [1,4,6], [2,3,5], [2,3,6], [2,4,5], [2,4,6]];
-    ppp = normal_toric_variety(max_cones, ray_generators, non_redundant = true)
-    
-    return ppp
-end;
+    ray_generators = [[1,0,0], [-1,0,0], [0,1,0], [0,-1,0], [0,0,1], [0,0,-1]]
+    max_cones = [[1,3,5], [1,3,6], [1,4,5], [1,4,6], [2,3,5], [2,3,6], [2,4,5], [2,4,6]]
+    return normal_toric_variety(max_cones, ray_generators, non_redundant = true)
+end
 
-#---------------------------------------
-# Defines the pentagon
-#---------------------------------------
+
+@doc raw"""
+    define_pentagon()
+
+Construct the pentagon with fixed labeling of the rays.
+
+# Examples
+```jldoctest
+julia> pentagon = define_pentagon()
+Normal toric variety
+
+```
+"""
 function define_pentagon()
-    ray_generators = [[0,1], [-1,-1], [1,0], [-1,0], [0,-1]];
-    max_cones = [[1,4], [4,2], [2,5], [5,3], [3,1]];
-    pentagon = normal_toric_variety(max_cones, ray_generators, non_redundant = true)
+    ray_generators = [[0,1], [-1,-1], [1,0], [-1,0], [0,-1]]
+    max_cones = [[1,4], [4,2], [2,5], [5,3], [3,1]]
+    return normal_toric_variety(max_cones, ray_generators, non_redundant = true)
+end
     
-    return pentagon
-end;
-    
-#---------------------------------------
-# Defines the hexagon
-#---------------------------------------
+
+@doc raw"""
+    define_hexagon()
+
+Construct the pentagon with fixed labeling of the rays.
+
+# Examples
+```jldoctest
+julia> hexagon = define_hexagon()
+Normal toric variety
+
+
+```
+"""
 function define_hexagon()
-    ray_generators = [[0,1], [-1,-1], [1,0], [-1,0], [0,-1], [1,1]];
-    max_cones = [[1,4], [4,2], [2,5], [5,3], [3,6], [6,1]];
-    hexagon = normal_toric_variety(max_cones, ray_generators, non_redundant = true)
-    
-    return hexagon
-end;
+    ray_generators = [[0,1], [-1,-1], [1,0], [-1,0], [0,-1], [1,1]]
+    max_cones = [[1,4], [4,2], [2,5], [5,3], [3,6], [6,1]]
+    return normal_toric_variety(max_cones, ray_generators, non_redundant = true)
+end
 
 
 ########################################
 # DIVISORS
 ########################################
-# Basic properties of divisors on toric varieties
-########################################
 
 #---------------------------------------
-# representation of the divisor class of a toric divisor
+# Calculate properties of toric divisors and their classes
 #---------------------------------------
-function get_representative_of_divisor(td::ToricDivisor)   
+
+
+@doc raw"""
+    get_representative_of_divisor(td::ToricDivisor)
+
+Return the divisor class of a toric divisor in Cl = Z^n
+
+# Examples
+```jldoctest
+julia> h1 = define_hirzebruch_surface(1);
+
+julia> td = toric_divisor(h1, [1,1,1,1]);
+
+julia> get_representative_of_divisor(td)
+Abelian group element [1, 2]
+
+```
+"""
+function get_representative_of_divisor(td::ToricDivisor) 
     return divisor_class(toric_divisor_class(td)) 
 end;
 
-#---------------------------------------
-# shows the generators and the relations of the prime divisors in the class-group
-# returns the map pi: Div_T -> Cl as matrix
-#---------------------------------------
-function show_generators_and_relations_of_classgroup(v::NormalToricVariety; print_output::Bool=true)
 
+@doc raw"""
+    show_generators_and_relations_of_classgroup(v::NormalToricVariety; print_output::Bool=true)
+
+Gives the map pi: Div_T(X) -> Cl(X).
+Prints generators and relations of the prime divisors in the class group.
+
+# Arguments
+- `v::NormalToricVariety`: The toric variety of interest
+- `print_output::Bool=true`: (optional) Determine if generators and relations are printed
+
+# Examples
+```jldoctest
+julia> h1 = define_hirzebruch_surface(1);
+
+julia> show_generators_and_relations_of_classgroup(h1)
+The class group is Z^2
+The Picard group is Z^2
+
+Divisorclass of D1 is: [1, 0] => generator of class-group
+Divisorclass of D2 is: [1, 0] => D2 ~ D1
+Divisorclass of D3 is: [0, 1] => generator of class-group
+Divisorclass of D4 is: [-1, 1] => D4 ~ -D1 + D3
+
+The map pi: Div_T(X) --> Cl(X) is given by the matrix
+1 1 0 -1
+0 0 1 1
+
+The anticanonical divisor class is [1, 2]
+The toric variety is Fano: true
+2×4 Matrix{Int64}:
+ 1  1  0  -1
+ 0  0  1   1
+
+```
+"""
+function show_generators_and_relations_of_classgroup(v::NormalToricVariety; print_output::Bool=true)
     fan_v = polyhedral_fan(v)
     nrays_v = n_rays(fan_v)        
     cl_group = class_group(v)
     cl_rank = torsion_free_rank(cl_group)
-    all_reps = []
-    
-    generators = [([i == j ? 1 : 0 for j in 1:cl_rank]) for i in 1:cl_rank]
-    
+
+    # print info
     if print_output
         println("The class group is ", cl_group)  
         println("The Picard group is ", picard_group(v)) 
         println() 
     end
+
+    # explicit typed containers
+    all_reps = Vector{Vector{Int}}()
+    base = Int[]
     
-    # identify the index of the base elements
-    base = []
+    # generators are unit vectors
+    generators = [([i == j ? 1 : 0 for j in 1:cl_rank]) for i in 1:cl_rank]
+    
     
     for c in 1:nrays_v
         vec = zeros(Int, nrays_v)
         vec[c] = 1
         div_c = toric_divisor(v, vec)
         cl_c = get_representative_of_divisor(div_c)
-        rep_c = Int64[]
-              
+
+        rep_c = Int64[]            
         for j in 1:cl_rank
             push!(rep_c, cl_c[j])
         end
         
-        if rep_c in generators
+        # check if it's a generator
+        idx = findfirst(==(rep_c), generators)
+        if idx !== nothing
             push!(base, c)
-            deleteat!(generators, findall(x->x==rep_c,generators)) 
+            deleteat!(generators, idx)
         end
         
         push!(all_reps,rep_c)
@@ -158,29 +267,26 @@ function show_generators_and_relations_of_classgroup(v::NormalToricVariety; prin
         if c in base
             print_output && println("Divisorclass of D$c is: ", all_reps[c], " => generator of class-group")     
         else
-            str = ""
+            buf = IOBuffer()
             for k in 1:cl_rank
                 fac = all_reps[c][k]
-                
                 if fac == 0
-                    #nothing
+                    continue
                 elseif fac == 1
-                    str = str * "D$(base[k]) + "
+                    print(buf, "D$(base[k]) + ")
                 elseif fac == -1
-                    str = str * "-D$(base[k]) + "
+                    print(buf, "-D$(base[k]) + ")
                 else
-                    str = str * "$fac*D$(base[k]) + "
-                end
-                
-                if k == cl_rank
-                    str = chop(str, tail = 2)
+                    print(buf, "$fac*D$(base[k]) + ")
                 end
             end
-            
+            str = String(take!(buf))
+            str = isempty(str) ? "" : chop(str, tail=2)
             print_output && println("Divisorclass of D$c is: ", all_reps[c], " => D$c ~ ", str)
-        end    
+        end
     end
     
+    # matrix form of the map
     mat_pi = hcat(all_reps...)
     
     if print_output
@@ -201,90 +307,151 @@ function show_generators_and_relations_of_classgroup(v::NormalToricVariety; prin
     end
      
     return mat_pi
-    
-end;
+end
 
-#---------------------------------------
-# Calculates the Cartier-Data of a given Cartier-Divisor
-#---------------------------------------
+
+@doc raw"""
+    calculate_cartier_data(td::ToricDivisor, cones::Bool=true)
+
+Calculate the Cartier data of a Cartier divisor together with the corresponding cones.
+
+# Arguments
+- `td::ToricDivisor`: The toric divisor of interest
+- `cones::Bool=true`: (optional) Determines if the corresponding cones or their rays are returned
+
+# Examples
+```jldoctest
+julia> h1 = define_hirzebruch_surface(1);
+
+julia> td = toric_divisor(h1, [1,1,1,1]);
+
+julia> calculate_cartier_data(td)
+4-element Vector{Tuple{Any, Vector{Float64}}}:
+ (Polyhedral cone in ambient dimension 2, [1.0, -1.0])
+ ⋮
+ (Polyhedral cone in ambient dimension 2, [-1.0, -1.0])
+
+```
+"""
 function calculate_cartier_data(td::ToricDivisor, cones::Bool=true)
-
-    # implement a check if divisor is not cartier
     coeffs_td_int = transform_rayvector(coefficients(td))  
     var = toric_variety(td)
     rays_var = rays(var)
     maxcones_var = maximal_cones(polyhedral_fan(var))
     
-    rays_var_int = []
-    cartier_data = []
+    rays_var_int  = [transform_rayvector(r) for r in rays_var]
+    cartier_data = Vector{Tuple{Any, Vector{Float64}}}()
     
-    for r in rays_var
-        push!(rays_var_int, transform_rayvector(r))    
-    end
-        
+    # compute ray matrix
     rays_matrix = transpose(hcat(rays_var_int...))    
     
     for c in maxcones_var
-        rays_c = rays(c)        
-        ind = Int64[]
+        rays_c = rays(c)
         
-        for r in rays_c
-            i = findfirst(item -> item == r, rays_var)
-            push!(ind,i)
-        end
+        # find indices of rays of the current cone
+        ind = [findfirst(==(r), rays_var) for r in rays_c]
         
-        A = rays_matrix[ind,:]
+        A = rays_matrix[ind, :]
         b = -coeffs_td_int[ind]
         sol = A\b
         
-        if cones == true
-            out = c
-        else
-            out = rays(c)
-        end
-        
-        push!(cartier_data,(out, sol))
-        
+        out = cones ? c : rays_c
+        push!(cartier_data, (out, sol))
     end
     
     return cartier_data
-end;
+end
 
-#---------------------------------------
-# Checks if the input function characterize the nef divisors with coefficients in range
-#---------------------------------------
-function check_nef_conditions(
+
+@doc raw"""
+    check_nef_conditions(
         var::NormalToricVariety, 
         range::UnitRange{Int64}, 
         condition_func; 
         elements::Vector{Int64}=ones(Int, n_rays(var))
     )
 
-    check = true
+Check if the input function characterizes all nef divisors with coefficients in a range correctly.
+
+# Arguments
+- `var::NormalToricVariety`: The toric variety of interest
+- `range::UnitRange{Int64}`: The coefficients of the divisors in the class group
+- `condition_func`: Function with certain conditions on the coefficients of a toric divisor
+- `elements::Vector{Int64}=ones(Int, n_rays(var))`: (optional) Applies a permutation to the coefficients (if another basis is required)
+
+# Examples
+```jldoctest
+julia> p2 = define_projective_surface();
+
+julia> coeff_range = -2:2;
+
+julia> cond = (a, b, c) -> a + b + c >= 0;
+
+julia> check_nef_conditions(p2, coeff_range, cond)
+true
+
+```
+"""
+function check_nef_conditions(
+        var::NormalToricVariety, 
+        range::UnitRange{Int64}, 
+        condition_func; 
+        elements::Union{Nothing, Vector{Int}}=nothing
+    )
+
+    nrays = n_rays(polyhedral_fan(var))
+    all_coeffs = generate_vectors(nrays, range)
     
-    all_coeffs = generate_vectors(n_rays(polyhedral_fan(var)), range)
-    
-    if elements != ones(Int, n_rays(var))
+    if elements !== nothing
         all_coeffs = [v .* elements for v in all_coeffs]
-        all_coeffs = collect(Set(all_coeffs)) 
+        unique!(all_coeffs)  # in-place deduplication
     end
     
     for coeff in all_coeffs
         td = toric_divisor(var, coeff)
         cond = condition_func(coeff...)
         if is_nef(td) != cond
-            check = false
-            break
+            return false
         end
     end
 
-    return check
-end;
+    return true
+end
 
-#---------------------------------------
-# Calculates a decomposition of a divisor into two nef divisors
-# Caution when using the input basepoint_choice, an index other than 1 may not exist.
-#---------------------------------------
+
+@doc raw"""
+    calculate_nef_pair(
+        tv::NormalToricVariety, 
+        td::ToricDivisor; 
+        show_coeffs::Bool=true, 
+        basepoint_choice::Int=1
+    )
+
+Calculate a nef pair of a Q-Cartier divisor on a semiprojective toric variety.
+This decomposition is in general not unique.
+
+# Arguments
+- `tv::NormalToricVariety`: The semiprojective toric variety
+- `td::ToricDivisor`: The toric divisor for which a decomposition into nef divisors should be found
+- `show_coeffs::Bool=true`: (optional) Determines if the coefficients of the divisors or the divisors are returned
+- `basepoint_choice::Int=1`: (optional) Pick one of the possible decompositions
+
+# Examples
+```jldoctest
+julia> hexagon = define_hexagon();
+
+julia> td = toric_divisor(hexagon, [-4,-2,-1,-3,0,0]);
+
+julia> calculate_nef_pair(hexagon, td)
+The input divisor is linear equivalent to: [-4, -2, -1, -3, 0, 0]
+([1, 1, -1, 2, 0, 0], [5, 3, 0, 5, 0, 0])
+
+julia> calculate_nef_pair(hexagon, td; basepoint_choice=2)
+The input divisor is linear equivalent to: [-4, -2, -1, -3, 0, 0]
+([1, 2, -1, 2, 0, 0], [5, 4, 0, 5, 0, 0])
+
+```
+"""
 function calculate_nef_pair(
         tv::NormalToricVariety, 
         td::ToricDivisor; 
@@ -292,31 +459,32 @@ function calculate_nef_pair(
         basepoint_choice::Int=1
     )
 
-    n = torsion_free_rank(class_group(tv))     
+    n = torsion_free_rank(class_group(tv))
+
+    # coefficients of the divisor class
     coeffs = Int64[]
     for i in 1:n
         index_i = divisor_class(toric_divisor_class(td))[i]
         push!(coeffs, index_i)
     end
+
+    # collect facet inequalities
+    nefFacets = vcat([transpose(transform_rayvector(f.a)) for f in facets(nef_cone(tv))]...)
+    r, c = size(nefFacets)
     
-    nefFacets = []
-    for f in facets(nef_cone(tv)) 
-        push!(nefFacets, transpose(transform_rayvector(f.a))) 
-    end
-    nefFacets = vcat(nefFacets...)
-    r = nrows(nefFacets)
-    c = ncols(nefFacets)
-    
+    # equalities
     B = hcat(I(n), -I(n)) 
     equalities = (B, coeffs) 
     
+    # inequalities
     A = vcat(nefFacets, zeros(Int64,r,c))
     AA = vcat(zeros(Int64,r,c), nefFacets)
     AAA = hcat(A, AA)
     inequalitites = (AAA, zeros(Int64,2*r)) 
     
     P = polyhedron(inequalitites, equalities)
-    # we make a choice here!
+
+    # choose basepoint
     pvv = minimal_faces(P).base_points[basepoint_choice]
     pv1 = transform_rayvector(pvv[1:n])
     pv2 = transform_rayvector(pvv[n+1:2*n])
@@ -341,25 +509,214 @@ function calculate_nef_pair(
         throw(ErrorException("The decomposition is wrong!")) 
     end
     
-    if show_coeffs == true
-        return (ctd1, ctd2) 
-    else
-        return (td1, td2)
-    end 
-end;
+    return show_coeffs ? (ctd1, ctd2) : (td1, td2)
+end
 
 
-########################################
-# BLOW-UPS
-########################################
+@doc raw"""
+    get_exceptional_divisor(morphism::Oscar.ToricBlowupMorphism{NormalToricVariety, NormalToricVariety})
 
-#---------------------------------------
-# Gives the exceptional divisor of a blowup as Vector{Int64}
-#---------------------------------------
+Return the exceptional divisor of a toric blowup morphism as a vector of integers.
+
+# Arguments
+- `morphism::Oscar.ToricBlowupMorphism{NormalToricVariety, NormalToricVariety}`: The toric blow up morphism
+
+# Examples
+```jldoctest
+julia> pentagon = define_pentagon();
+
+julia> new_ray = [-1, -1];
+
+julia> blowup_morph = blow_up(pentagon, new_ray);
+
+julia> get_exceptional_divisor(blowup_morph)
+3-element Vector{Int64}:
+ 0
+ 1
+ 0
+
+
+```
+"""
 function get_exceptional_divisor(morphism::Oscar.ToricBlowupMorphism{NormalToricVariety, NormalToricVariety})
     exc_div = exceptional_prime_divisor(morphism)
     blow_up = domain(morphism)
     cl_rank = torsion_free_rank(class_group(blow_up))
     E = transform_rayvector([get_representative_of_divisor(exc_div)[i] for i in 1:cl_rank])
     return E
-end;
+end
+
+
+########################################
+# SECONDARY FAN
+########################################
+
+function is_query_block_contained(
+    query::Vector{Vector{Vector{T}}},
+    origin::Vector{Vector{Vector{Vector{T}}}}
+) where T
+
+    # Convert matrices to hashable types (tuple-of-tuples)
+    hashable_query = [Tuple.(mat) for mat in query]
+    query_counts = countmap(hashable_query)
+
+    for block in origin
+        hashable_block = [Tuple.(mat) for mat in block]
+        block_counts = countmap(hashable_block)
+
+        # Check if all query matrices are contained in this block
+        if all(p -> get(block_counts, p.first, 0) ≥ p.second, pairs(query_counts))
+            return true  # found one block that contains the query
+        end
+    end
+
+    return false  # no block contained the query
+end
+
+
+function calculate_secondary_fan(beta::Vector{Vector{T}}) where T
+    #STEP 1 - Decide for a finite set of vectors in Z^d if they span R^d
+    d = length(beta[1])
+    combs = [collect(c) for c in Combinatorics.combinations(beta, d)] #find all subsets of right size
+    independent_sets = [comb for comb in combs if rank(hcat(comb...)) == d] #check if they are linear independant    
+    max_k = length(independent_sets)   
+    
+    # STEP 2 - Compute the intersection of rational cones
+    maximal_sets = Vector{Vector{Vector{Vector{T}}}}()
+
+    for k in max_k:-1:1
+        all_subsets_k = collect(Combinatorics.combinations(independent_sets, k))      
+
+        for s in all_subsets_k
+            # Skip if subset of already accepted, in this case, A is not maximal!
+            if !is_empty(maximal_sets)
+                if is_query_block_contained(s, maximal_sets)
+                    continue
+                end
+            end
+            
+            matrix = [vcat((x' for x in group)...) for group in s]
+            cone = positive_hull(matrix[1])
+            
+            for m in matrix[2:end]
+                mcone = positive_hull(m)
+                cone = intersect(cone, mcone)
+            end
+            
+            if dim(cone) == d
+                push!(maximal_sets, s)
+            end
+        end
+    end
+    
+    #STEP 3 - Compute the faces of a rational cone
+    tau = Vector{Cone{QQFieldElem}}()
+    
+    for A in maximal_sets
+        matrix = [vcat((x' for x in group)...) for group in A]
+        cone = positive_hull(matrix[1])
+            
+        for m in matrix[2:end]
+            mcone = positive_hull(m)
+            cone = intersect(cone, mcone)
+        end
+        
+        pf = polyhedral_fan(cone)
+        for i in 0:dim(pf)
+            pf_cones = cones(pf, i)
+            append!(tau, pf_cones)
+        end        
+    end
+    
+    secondary_fan = polyhedral_fan(tau)
+    return secondary_fan 
+end
+
+
+function find_adjacent_cones(cones::Vector{Vector{Int}})
+    n = length(cones)
+    sets = [Set(c) for c in cones]
+
+    adj_pairs = Vector{Tuple{Tuple{Int,Int}, Vector{Int}}}()
+    for i in 1:n, j in i+1:n
+        common = intersect(sets[i], sets[j])
+        if length(common) == 3
+            push!(adj_pairs, ((i, j), sort(collect(common))))  # tuple of indices + vector of common elements
+        end
+    end
+    return adj_pairs
+end
+
+
+function oriented_cocircuit(spanvecs::Vector{Vector{Int}}, vecs::Vector{Vector{Int}})
+    d = length(spanvecs[1])
+    M = [row[i] for row in spanvecs, i in 1:length(spanvecs[1])]
+
+    if rank(M) != d-1
+        error("Expected $(d-1) spanning vectors for a hyperplane in ℝ^$d")
+    end
+
+    # Calculate exact kernel
+    k = kernel(matrix(ZZ, M'))
+
+    # Kernel is generated by one element, transform ZZMatrix to Int-vector
+    gen = Int.(k[1,:])
+
+    # Canonical orientation: first nonzero entry must be positive
+    for x in gen
+        if x < 0
+            gen = [-yi for yi in gen]
+            break
+        elseif x > 0
+            break
+        end
+    end
+
+    cocircuit = [
+        sum(gen[i]*v[i] for i in 1:d) > 0 ? 1 :
+        sum(gen[i]*v[i] for i in 1:d) < 0 ? -1 : 0 
+        for v in vecs
+    ]
+
+    return cocircuit
+end
+
+
+function classify_vector(v::Vector{Int})
+    npos = count(==(1), v)   # number of 1s
+    nneg = count(==(-1), v)  # number of -1s
+
+    # error for invalid or trivial cases
+    if npos == 0 || nneg == 0
+        error("Invalid vector: must contain at least one 1 and one -1")
+    end
+
+    if npos == 1 && nneg == 1
+        return "degenerate"
+    elseif npos == 1 || nneg == 1
+        return "divisorial"
+    elseif npos > 1 && nneg > 1
+        return "flipping"
+    else
+        # This should not happen if input is valid
+        error("Unexpected case in classify_vector")
+    end
+end
+
+
+function extremal_position(beta::Vector{Vector{Int64}})
+    position = Int64[]
+    l = length(beta)
+    for i in 1:l
+        beta_i = beta[i]
+        beta_hat = [beta[j] for j in 1:l if j != i]
+        cone_beta_hat = positive_hull(beta_hat)
+        contained = in(beta_i, cone_beta_hat)
+        if contained == false
+            push!(position, i)
+        end
+    end      
+    return position
+end
+
+

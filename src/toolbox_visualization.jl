@@ -1,12 +1,85 @@
 using Plots.PlotMeasures
 
 ########################################
+# Wrapper function for visualization
+########################################
+
+
+@doc raw"""
+    visualize_tikz(
+        P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}, SubdivisionOfPoints{T}};
+        path::Union{Nothing, String}=nothing
+    ) where T<:Union{FieldElem, Float64}
+
+Visualize a polyhedral object as a TikZ figure using Oscar.jl.
+
+# Arguments
+- `P` : A polyhedral object, which can be one of:
+    - `Polyhedron{T}`
+    - `Cone{T}`
+    - `PolyhedralFan{T}`
+    - `PolyhedralComplex{T}`
+    - `SubdivisionOfPoints{T}`
+  where `T` is a subtype of `FieldElem` or `Float64`.
+- `path` : (optional) A `String` specifying the output filename for the TikZ file.
+  If `nothing` (default), the visualization is displayed in a temporary file.
+
+  # Behavior
+- The function uses the `:tikz` backend and sets the facet color to `"253 190 80"`.
+- If `path` is provided, the TikZ code is saved to the specified file.
+- Otherwise, the figure is generated but not saved permanently.
+
+# Examples
+```jldoctest
+julia> pentagon = define_pentagon();
+julia> visualize_tikz(polyhedral_fan(pentagon));
+
+"""
+function visualize_tikz(
+        P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}, SubdivisionOfPoints{T}};
+        path::Union{Nothing, String}=nothing
+    ) where T<:Union{FieldElem, Float64}
+
+    if dim(P) > 1
+        return Oscar.visualize(P; backend=:tikz, FacetColor="253 190 80", filename=path)
+    else
+        return Oscar.visualize(P; backend=:tikz, filename=path)
+    end
+end
+
+
+function visualize_mode(
+        P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}, SubdivisionOfPoints{T}}, 
+        mode::String
+    ) where T<:Union{FieldElem, Float64}
+
+    return mode=="oscar" ? visualize(P) : (mode=="tikz" ? visualize_tikz(P) : nothing)
+end
+
+
+########################################
 # PLOTING GENERAL DATA
 ########################################
 
-#---------------------------------------
-# Plot data of a Dataframe as 1/2/3D plot
-#---------------------------------------
+
+@doc raw"""
+    plot_data(
+        df::DataFrame; 
+        df_title=nothing, 
+        ax_labels::Bool=true, 
+        style::Symbol=:origin, 
+        camerapoint=nothing
+    )
+
+Plot data of a Dataframe as 1D/2D/3D plot.
+
+# Arguments
+- `df::DataFrame`: Dataframe that contains the points to plot
+- `df_title=nothing`: (optional) Title of the plot
+- `ax_labels::Bool=true`: (optional) Labeling of the plox axes
+- `style::Symbol=:origin`: (optional) Framestyle of the plot
+- `camerapoint=nothing`: (optional) Camera angle of the plot
+"""
 function plot_data(
         df::DataFrame; 
         df_title=nothing, 
@@ -71,16 +144,32 @@ function plot_data(
     end
     
     return plot_df
-end;
+end
 
 
 ########################################
 # CREATING GIFS
 ########################################
 
-#---------------------------------------
-# Creates a gif from a dataframe
-#---------------------------------------
+
+@doc raw"""
+    create_gif_from_df(
+        df::DataFrame, 
+        path::String; 
+        frames_per_sec::Int64=20, 
+        records::UnitRange{Int64}=0:360, 
+        angle::Int64=165
+    )
+
+Create a gif from a dataframe.
+
+# Arguments
+- `df::DataFrame`: Dataframe that contains the points to plot
+- `path::String`: Outputpath for the gif
+- `frames_per_sec`: (optional) Frames per second of the gif
+- `records::UnitRange{Int64}`: (optional) Number of pictures of the gif
+- `angle::Int64`: (optional) Camera angle of the gif
+"""
 function create_gif_from_df(
         df::DataFrame, 
         path::String; 
@@ -106,11 +195,29 @@ function create_gif_from_df(
     gif_plot = gif(anim, path; fps=frames_per_sec)
 
     return gif_plot
-end;
+end
 
-#---------------------------------------
-# Creates a gif from a vector of plots
-#---------------------------------------
+
+@doc raw"""
+    create_gif_from_vector(
+        plots::Vector{Any}, 
+        path::String, 
+        dim::Tuple{Int64, Int64}; 
+        frames_per_sec::Int64=20, 
+        records::UnitRange{Int64}=0:360, 
+        angle::Int64=165
+    )
+
+Create a gif from a vector of plots.
+
+# Arguments
+- `plots::Vector{Any}`: Vector of plots
+- `path::String`: Outputpath for the gif
+- `dim::Tuple{Int64, Int64}`: Pixel dimension of the gif
+- `frames_per_sec`: (optional) Frames per second of the gif
+- `records::UnitRange{Int64}`: (optional) Number of pictures of the gif
+- `angle::Int64`: (optional) Camera angle of the gif
+"""
 function create_gif_from_vector(
         plots::Vector{Any}, 
         path::String, 
@@ -131,21 +238,53 @@ function create_gif_from_vector(
     gif_plot = gif(anim, path; fps=frames_per_sec)
 
     return gif_plot
-end;
+end
+
+function create_gif_2D(
+        plots::Vector{Plots.Plot}, 
+        path::String,
+        frames_per_sec::Int=20
+    )
+    anim = Animation()
+
+    for p in plots
+        frame(anim, p)
+    end
+
+    gif_plot = gif(anim, path; fps=frames_per_sec)
+
+    return gif_plot
+end
 
 
 ########################################
 # PLOTTING IMMACULATE LOCUS + MACULATE REGIONS
 ########################################
 
-#---------------------------------------
-# Plot the maculate regions for a specific set of coordinates of a toric variety with Picard rank 2
-#---------------------------------------
-function plot_maculate_regions(regions::Vector{Any}; plotsize=(400,400), plottitle=nothing)
 
-    maculate_lb = regions[1]
-    hcone = regions[2]
-    immaculate_lb = regions[3]
+@doc raw"""
+    plot2d_maculate_regions(
+        tv2_data::@NamedTuple{regions::Vector{Vector{DataFrame}}, hcone::Vector{Int64}, immaculate::DataFrame};
+        plotsize=(400,400),
+        plottitle=nothing
+    )
+
+Plot the maculate regions for a specific set of coordinates of a toric variety with Picard rank 2.
+
+# Arguments
+- `tv2_data::@NamedTuple{regions::Vector{Vector{DataFrame}}, hcone::Vector{Int64}, immaculate::DataFrame};`: The maculate regions that are plotted
+- `plotsize=(400,400)`: (optional) Pixel dimension of the plot
+- `plottitle=nothing`: (optional) Title of the plot
+"""
+function plot2d_maculate_regions(
+        tv2_data::@NamedTuple{regions::Vector{Vector{DataFrame}}, hcone::Vector{Int64}, immaculate::DataFrame};
+        plotsize=(400,400),
+        plottitle=nothing
+    )
+
+    maculate_lb = tv2_data.regions
+    hcone = tv2_data.hcone
+    immaculate_lb = tv2_data.immaculate
     plot_regions = plot(framestyle=:origin, size=plotsize, ticks=([], false), legend=:outertopright) 
     
     for i in eachindex(maculate_lb)
@@ -153,8 +292,9 @@ function plot_maculate_regions(regions::Vector{Any}; plotsize=(400,400), plottit
              
         x_lp, y_lp = region[1].x1, region[1].x2
         x_bound, y_bound = region[2].x1, region[2].x2
-        
-        color_regions = palette(:devon10)[1+2*hcone[i]]
+                
+        color_palette = range(colorant"darkblue", stop=colorant"lightblue", length=1+2*hcone[end])
+        color_regions = color_palette[1+2*hcone[i]]
         
         plot!(x_bound,y_bound, seriestype=:shape, alpha=0.5, color=color_regions, label="H$(hcone[i])-cone")
         plot!(x_lp,y_lp, seriestype=:scatter, color=color_regions, label=:none)
@@ -170,12 +310,11 @@ function plot_maculate_regions(regions::Vector{Any}; plotsize=(400,400), plottit
     end
     
     return plot_regions    
-end;
+end
 
-#---------------------------------------
-# Plot the maculate regions for a specific set of coordinates of a toric variety with Picard rank 3
-#---------------------------------------
-function plot3d_maculate_regions(
+
+@doc raw"""
+    plot3d_maculate_regions(
         regions::Vector{Any}; 
         plotall::Bool = false, 
         plotsize=(400,400), 
@@ -185,9 +324,30 @@ function plot3d_maculate_regions(
         plotlegend=:outertopright
     )
 
-    maculate_lb = regions[1]
-    hcone = regions[2]
-    immaculate_lb = regions[3]
+Plot the maculate regions for a specific set of coordinates of a toric variety with Picard rank 3.
+
+# Arguments
+- `regions::Vector{Any}`: The maculate regions that are plotted
+- `plotall::Bool`: (optional) Determines if all maculate regions are plotted
+- `plotsize=(400,400)`: (optional) Pixel dimension of the plot
+- `plottitle=""`: (optional) Title of the plot
+- `plottitlesize`: (optional) Size of the title of the plot
+- `plotlims`: (optional) Limits for the axes of the plot
+- `plotlegend`: (optional) Position of the plot legend
+"""
+function plot3d_maculate_regions(
+        tv3_data::@NamedTuple{regions::Vector{Vector{DataFrame}}, hcone::Vector{Int64}, immaculate::DataFrame};
+        plotall::Bool = false, 
+        plotsize=(400,400), 
+        plottitle="",
+        plottitlesize = 12,
+        plotlims=nothing,
+        plotlegend=:outertopright
+    )
+
+    maculate_lb = tv3_data.regions
+    hcone = tv3_data.hcone
+    immaculate_lb = tv3_data.immaculate
 
     if plotall == false
         all_plots = []
@@ -241,12 +401,25 @@ function plot3d_maculate_regions(
     else
         return plot_regions
     end
-end;
+end
 
-#---------------------------------------
-# Plot the projection of immaculate line bundles for toric varieties of Picard rank 3
-#---------------------------------------
-function visualize_projection_of_immaculate_linebundles_for_pic3(coeffs::Vector{Int64}; mysize::Tuple{Int64, Int64}=(800,800))
+
+@doc raw"""
+    visualize_projection_of_immaculate_linebundles_for_pic3(
+        coeffs::Vector{Int64};
+        mysize::Tuple{Int64, Int64}=(800,800)
+    )
+
+Plot the projection of immaculate line bundles for toric varieties of Picard rank 3.
+
+# Arguments
+- `coeffs::Vector{Int64}`: Coefficients
+- `mysize::Tuple{Int64, Int64}`: (optional) Pixel dimension of the plot
+"""
+function visualize_projection_of_immaculate_linebundles_for_pic3(
+        coeffs::Vector{Int64};
+        mysize::Tuple{Int64, Int64}=(800,800)
+    )
     
     # We start with para since calculate_planary_parallelograms checks for length
     para = calculate_planary_parallelograms(coeffs)
@@ -355,16 +528,32 @@ function visualize_projection_of_immaculate_linebundles_for_pic3(coeffs::Vector{
     end
    
     return plot_all  
-end;
+end
 
 
 ########################################
 # PLOTTING EXCEPTIONAL SEQUENCES
 ########################################
 
-#---------------------------------------
-# Plot a sequence in layers 
-#---------------------------------------
+
+@doc raw"""
+    visualize3d_sequence_by_layers(
+        seq::Vector{Vector{T}},
+        plot_area::Vector{UnitRange{Int64}};
+        x_shift::Float64=0.0,
+        y_shift::Float64=0.0,
+        cam::Tuple{Int64, Int64}=(10,20)
+    )
+
+Visualize a vector of vector by introducing layers which indicates which points have the same x3-coordinate.
+
+# Arguments
+- `seq::Vector{Vector{T}}`: The points which are plotted
+- `plot_area::Vector{UnitRange{Int64}}`: Defines the limits of the axes of the plot
+- `x_shift::Float64`: (optional) Shifts the x1 coordinates
+- `y_shift::Float64`: (optional) Shifts the x2 coordinates
+- `cam::Tuple{Int64, Int64}`: (optional) Position of the camera
+"""
 function visualize3d_sequence_by_layers(
         seq::Vector{Vector{T}},
         plot_area::Vector{UnitRange{Int64}};
@@ -430,11 +619,35 @@ function visualize3d_sequence_by_layers(
     end
 
     return plot_seq
-end;
+end
 
-#---------------------------------------
-# Plot a sequence with indicating moving lines
-#---------------------------------------
+
+@doc raw"""
+    visualize3d_sequence_moving_lines(
+        seq::Vector{Vector{T}},
+        plot_area::Vector{UnitRange{Int64}},
+        color_vector::Vector{Int64},
+        x_shift::Float64=0.0,
+        y_shift::Float64=0.0;
+        cam::Tuple{Int64, Int64}=(10,20),
+        siz::Tuple{Int64, Int64}=(300,300),
+        skip::Union{Int, Nothing}=nothing,
+        transp::Float64=0.5
+    )
+
+Visualize a vector of vector by showing which points can be shifted along a line.
+
+# Arguments
+- `seq::Vector{Vector{T}}`: The points which are plotted
+- `plot_area::Vector{UnitRange{Int64}}`: Defines the limits of the axes of the plot
+- `color_vector::Vector{Int64}`: Determines the colors of the points
+- `x_shift::Float64`: (optional) Shifts the x1 coordinates
+- `y_shift::Float64`: (optional) Shifts the x2 coordinates
+- `cam::Tuple{Int64, Int64}`: (optional) Position of the camera
+- `siz::Tuple{Int64, Int64}=(300,300)`: (optional) Pixel dimension of the plot
+- `skip::Union{Int, Nothing}=nothing`: (optional) Determines which layers should not be plotted
+- `transp::Float64`: (optional) Transparency of the layers
+"""
 function visualize3d_sequence_moving_lines(
         seq::Vector{Vector{T}},
         plot_area::Vector{UnitRange{Int64}},
@@ -499,11 +712,27 @@ function visualize3d_sequence_moving_lines(
     end
 
     return layer_plot
-end;
+end
 
-#---------------------------------------
-# Plot a sequence in layers for several p
-#---------------------------------------
+
+@doc raw"""
+    visualize3d_sequence_process_by_layers(
+        seq::Vector{Vector{Vector{T}}},
+        plot_area::Vector{UnitRange{Int64}};
+        x_shift::Float64=0.0,
+        y_shift::Float64=0.0,
+        cam::Tuple{Int64, Int64}=(10,20)
+    )
+
+Plot a sequence in layers for several p.
+
+# Arguments
+- `seq::Vector{Vector{T}}`: The points which are plotted
+- `plot_area::Vector{UnitRange{Int64}}`: Defines the limits of the axes of the plot
+- `x_shift::Float64`: (optional) Shifts the x1 coordinates
+- `y_shift::Float64`: (optional) Shifts the x2 coordinates
+- `cam::Tuple{Int64, Int64}`: (optional) Position of the camera
+"""
 function visualize3d_sequence_process_by_layers(
         seq::Vector{Vector{Vector{T}}},
         plot_area::Vector{UnitRange{Int64}};
@@ -583,5 +812,248 @@ function visualize3d_sequence_process_by_layers(
     end
 
     return plot_seq
+end
 
-end;
+
+########################################
+# PLOTTING THE INFECTION PROCESS
+########################################
+
+
+@doc raw"""
+    visualize_infection_of_pentagon(
+        seq::Vector{Vector{T}},
+        plot_area::Vector{UnitRange{Int64}},
+        color_vec::Vector{Int64},
+        perspective::Tuple{Int64, Int64} = (10,20),
+        plot_size::Tuple{Int64, Int64} = (300,300),
+        point_size::Int64 = 5
+    )
+
+Visualize the infection process on the pentagon.
+
+# Arguments
+- `seq::Vector{Vector{T}}`: The points which are plotted
+- `plot_area::Vector{UnitRange{Int64}}`: Defines the limits of the axes of the plot
+- `color_vector::Vector{Int64}`: Determines the colors of the points
+- `perspective::Tuple{Int64, Int64}`: (optional) Position of the camera
+- `plot_size::Tuple{Int64, Int64}=(300,300)`: (optional) Pixel dimension of the plot
+- `point_size`: (optional) Size of the plotted points
+"""
+function visualize_infection_of_pentagon(
+        seq::Vector{Vector{T}},
+        plot_area::Vector{UnitRange{Int64}},
+        color_vec::Vector{Int64},
+        perspective::Tuple{Int64, Int64} = (10,20),
+        plot_size::Tuple{Int64, Int64} = (300,300),
+        point_size::Int64 = 5
+    ) where T
+
+    df = convert_to_df(seq)
+    df.x4 = color_vec
+
+    x_lim_min = first(plot_area[1])
+    x_lim_max = last(plot_area[1])
+    y_lim_min = first(plot_area[2])
+    y_lim_max = last(plot_area[2])
+    z_lim_min = first(plot_area[3])
+    z_lim_max = last(plot_area[3])
+
+    layer_plot = plot(
+        xlims = (x_lim_min,x_lim_max), xticks = x_lim_min:1:x_lim_max,
+        ylims = (y_lim_min,y_lim_max), yticks = y_lim_min:1:y_lim_max,
+        zlims = (z_lim_min,z_lim_max), zticks = z_lim_min:1:z_lim_max,
+        grid = :true, gridalpha = 0.6,
+        framestyle = :box,
+        camera = perspective,
+        size = plot_size
+    )
+
+    for layer in plot_area[3]
+        # Add the xy-plane of height layer
+        z_plane = ones(length(plot_area[1]), length(plot_area[2])) * layer
+
+        surface!(
+            plot_area[1], plot_area[2], z_plane, 
+            alpha = 0.4, color = :gray, colorbar=false
+        )
+
+        # Determine the elements of the exceptional sequence in the current layer
+        df_seq_layer = filter(row -> row.x3 == layer, df)
+
+        # Plot the elemetns in the current layer and label them
+        colors = @. ifelse(df_seq_layer.x4 == 0, "green",
+        @. ifelse(df_seq_layer.x4 == 1, "black", 
+        ifelse(df_seq_layer.x4 == 3, "blue", "red")))
+
+        plot!(
+            df_seq_layer.x1, df_seq_layer.x2, df_seq_layer.x3, 
+            seriestype = :scatter, framestyle = :axes, legend = :false, color = colors, markersize = point_size
+        )
+    end
+
+    return layer_plot
+end
+
+# Plot general 2D infection spreading
+function plot_infection_step_2D(
+    variety::NormalToricVariety,
+    mes_set::Set{Vector{Int}};
+    base_change::Union{AbstractMatrix, Nothing}=nothing,
+    plot_size =(300, 300),
+    grid_size::NTuple{4, Int}=(-5,5,-5,5),
+    plot_title::String="",
+    legend_position=nothing,
+    old_color=:black,
+    new_color=:orange,
+    marker_size::Int=5
+)
+    # --- Circle Parameters ---
+    origin_radius = 0.25 # Use a fixed small radius for the ring    
+    origin_color = :darkgreen
+    origin_linewidth = 2 
+    # -------------------------
+    
+    # --- Grid Parameters ---
+    x_min, x_max, y_min, y_max = grid_size
+    # -------------------------
+
+    # ... (Calculation of sets and coordinates remains unchanged) ...
+    initial_infected_set = deepcopy(mes_set)
+
+    final_infected_set = infection_step(
+        variety,
+        initial_infected_set;
+        base_change=base_change,
+        print_info=false
+    )
+
+    newly_infected_set = setdiff(final_infected_set, initial_infected_set)
+    
+    old_x = [p[1] for p in initial_infected_set]
+    old_y = [p[2] for p in initial_infected_set]
+    
+    new_x = [p[1] for p in newly_infected_set]
+    new_y = [p[2] for p in newly_infected_set]
+
+    # Create the plot
+    plot(
+        size=plot_size,
+        legend=legend_position,
+        title=plot_title,
+        xlabel=nothing,
+        ylabel=nothing,
+        xlims=(x_min, x_max),
+        ylims=(y_min, y_max),
+        xticks=x_min:1:x_max,
+        yticks=y_min:1:y_max,
+        grid=true,
+        aspect_ratio=:equal
+    )
+    
+    # 1. Plot old infected points
+    scatter!(old_x, old_y, 
+             label="Already Infected", 
+             color=old_color, 
+             marker=:circle, 
+             markersize=marker_size, 
+             markerstrokewidth=0) 
+    
+    # 2. Plot newly infected points
+    scatter!(new_x, new_y, 
+             label="Newly Infected", 
+             color=new_color, 
+             marker=:circle, 
+             markersize=marker_size, 
+             markerstrokewidth=0)
+
+    # 3. Plot the special transparent-interior circle at (0, 0)
+    
+    # Define angles from 0 to 2*pi
+    θ = LinRange(0, 2π, 100)
+    
+    # Calculate circle coordinates
+    x_circle = origin_radius .* cos.(θ)
+    y_circle = origin_radius .* sin.(θ)
+
+    # Use plot! to draw the line/border of the circle
+    plot!(x_circle, y_circle, 
+          label=nothing, 
+          linecolor=origin_color, 
+          linewidth=origin_linewidth, 
+          seriestype=:path) # Ensure it's treated as a continuous path (line)
+    
+    # Return the plot object
+    return current()
+end
+
+function plot_infection_procedure(
+        variety::NormalToricVariety,
+        mes_set::Set{Vector{Int}},
+        max_steps::Int;
+        base_change::Union{AbstractMatrix, Nothing}=nothing,
+        plot_size = (400, 400),
+        grid_size::NTuple{4, Int}=(-5, 5, -5, 5), # Uses the updated NTuple{4, Int} grid size
+        plot_title::String="nothing",
+        legend_position=nothing,
+        old_color=:black,
+        new_color=:orange,
+        marker_size::Int=5
+    )::Vector{Plots.Plot} # Returns a vector of plot objects
+    
+    # Initialize the current set of infected points
+    currently_infected_set = deepcopy(mes_set)
+    
+    # Vector to store all generated plot objects
+    all_plots = Plots.Plot[]
+    
+    # -----------------------------------------------------
+    # 1. Iteration Loop (Step 1 to max_steps)
+    # -----------------------------------------------------
+    for current_step in 1:max_steps
+        
+        # CRUCIAL: Save the current state BEFORE the infection step
+        previous_infected_set = currently_infected_set
+        
+        current_title = plot_title == "nothing" ? "" : plot_title * "$current_step"
+        
+        # Create the plot
+        p = plot_infection_step_2D(
+            variety,
+            previous_infected_set;
+            base_change=base_change,
+            plot_size=plot_size,
+            grid_size=grid_size,
+            plot_title=current_title,
+            legend_position=legend_position,
+            old_color=old_color,
+            new_color=new_color,
+            marker_size=marker_size
+        )
+        
+        push!(all_plots, p)
+                       
+        # Calculate the next infection state (using the previous set as input)
+        # We assume infection_step returns the final set after one step.
+        next_infected_set = infection_step(
+            variety,
+            previous_infected_set; # Pass the Set directly
+            base_change=base_change
+        )
+        
+        # Check for stagnation
+        if length(next_infected_set) == length(previous_infected_set)
+            println("Infection stabilized at step $(current_step - 1). Stopping.")
+            break
+        end
+
+        # Update the infection state for the next loop iteration
+        currently_infected_set = next_infected_set      
+
+        if current_step == max_steps
+            println("Reached maximum step limit.")
+        end
+    end
+
+    return all_plots
+end

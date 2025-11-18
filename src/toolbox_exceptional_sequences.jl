@@ -1,25 +1,44 @@
 ########################################
-# DEFINITION OF (NEGATIVE) IMMACULATE LOCUS
+# IMPLEMENTED TORIC VARIETIES AND THEIR BASES
+#---------------------------------------
+# The projective space P^n (D1) 
+# The Hirzebruch surface H_r (D1,D3) 
+# The Pentagon (D1,D3,D2+D4+D5)
+# The Hexagon (D1,D2,D3,D4) 
+# The product P^1xP^1xP^1 (D1,D3,D5)
 ########################################
 
-#---------------------------------------
-# Define a structure which stores the values for the immaculate locus
-# The following bases are used:
-# P^n - D1 
-# H_r - D1,D3 
-# Pentagon - D1,D3,D2+D4+D5
-# Hexagon - D1,D2,D3,D4 
-# P1xP1xP1 - D1,D3,D5
-#***************************************
-# The parameters are as follows:
-# difference: check if difference is in (negative) immaculate locus
-# param: used for varieties like P^n or H_r to specify n or reached
-# sgn: specifies if negative or positive immaculate locus is used
-#---------------------------------------
+
+########################################
+# STRUCTURE ENCODING THE (NEGATIVE) IMMACULATE LOCI OF CERTAIN TORIC VARIETIES
+########################################
+
+
+"""
+    NegativeImmaculateLocus
+
+Structure to store the classes of line bundles in the negative immaculate locus, consisting of:
+
+- `name::Symbol`: a symbolic identifier for the toric variety
+- `func::Function`: a function that checks if a difference of two classes is in the immaculate locus
+
+The function has signature `(difference, param, sgn) -> Bool` with:
+
+- `difference`: The difference of two vectors
+- `param`: A parameter for varieties like P^n or H_r
+- `sgn`: Specifies if the negative or positive immaculate locus is of interest
+
+Available toric varieties with bases:
+- The projective space P^n (D1) 
+- The Hirzebruch surface H_r (D1,D3) 
+- The Pentagon (D1,D3,D2+D4+D5)
+- The Hexagon (D1,D2,D3,D4) 
+- The product P^1xP^1xP^1 (D1,D3,D5)
+"""
 struct NegativeImmaculateLocus
     name::Symbol
     func::Function
-end;
+end
 
 # Initialize dictionary
 nimmloc = Dict{Symbol, NegativeImmaculateLocus}()
@@ -85,34 +104,30 @@ nimmloc[:p1p1p1] = NegativeImmaculateLocus(:p1p1p1,
 # DICTIONARY OF CONFIGURATIONS
 ########################################
 
-#---------------------------------------
-# Define a dictionary which stores the functions for the configurations
-# The following bases are used:
-# P^n - D1 
-# H_r - D1,D3 
-# Pentagon - D1,D3,D2+D4+D5
-# Hexagon - D1,D2,D3,D4 
-# P1xP1xP1 - D1,D3,D5
-#***************************************
-# The parameters are as follows:
-# difference: check if difference is in (negative) immaculate locus
-# param: used for varieties like P^n or H_r to specify n or reached
-# sgn: specifies if negative or positive immaculate locus is used
-#---------------------------------------
 
+@doc raw"""
+    configurate_exceptional_sequences_on_h0(
+        V::Vector{Vector{Vector{T}}},
+        param::Union{Int, Nothing}=nothing,
+        sgn::Int=1
+    )
 
-#---------------------------------------
-# Configurations for P^1xP^1
-#---------------------------------------
+Associate to each sequences a labeling by assign a special value to each element of the sequence.
+
+# Arguments
+- `V::Vector{Vector{Vector{T}}}`: The sequences which should be encoded
+- `param::Union{Int, Nothing}`: (optional) Not required here
+- `sgn::Int`: (optional) Determines if the positive or negative immaculate locus should be considered
+"""
 function configurate_exceptional_sequences_on_h0(
         V::Vector{Vector{Vector{T}}},
         param::Union{Int, Nothing}=nothing,
-        sgn::Int64=1
+        sgn::Int=1
     ) where T
-    type_sequences_dict = Dict{Vector{Int64}, Vector{Vector{Vector{T}}}}()
+    type_sequences_dict = Dict{Vector{Int}, Vector{Vector{Vector{T}}}}()
 
     for seq in V
-        type_seq = Vector{Int64}()
+        type_seq = Vector{Int}()
         for vec in seq
             i = -1*sign(sgn)*vec #we want the negative immaculate locus
             
@@ -132,20 +147,32 @@ function configurate_exceptional_sequences_on_h0(
     end
 
     return type_sequences_dict
-end;
+end
 
-#---------------------------------------
-# Configurations for H_r
-#---------------------------------------
+
+@doc raw"""
+    configurate_exceptional_sequences_on_hr(
+        V::Vector{Vector{Vector{T}}},
+        param::Union{Int, Nothing}=nothing,
+        sgn::Int=1
+    )
+
+Associate to each sequences a labeling by assign a special value to each element of the sequence.
+
+# Arguments
+- `V::Vector{Vector{Vector{T}}}`: The sequences which should be encoded
+- `param::Union{Int, Nothing}`: (optional) Defines r for H_r
+- `sgn::Int`: (optional) Determines if the positive or negative immaculate locus should be considered
+"""
 function configurate_exceptional_sequences_on_hr(
         V::Vector{Vector{Vector{T}}},
         param::Union{Int, Nothing}=nothing,
-        sgn::Int64=1
+        sgn::Int=1
     ) where T
-    type_sequences_dict = Dict{Vector{Int64}, Vector{Vector{Vector{T}}}}()
+    type_sequences_dict = Dict{Vector{Int}, Vector{Vector{Vector{T}}}}()
 
     for seq in V
-        type_seq = Vector{Int64}()
+        type_seq = Vector{Int}()
         for vec in seq
             i = -1*sign(sgn)*vec #we want the negative immaculate locus
             
@@ -165,20 +192,32 @@ function configurate_exceptional_sequences_on_hr(
     end
 
     return type_sequences_dict
-end;
+end
 
-#---------------------------------------
-# Configurations for the pentagon
-#---------------------------------------
+
+@doc raw"""
+    configurate_exceptional_sequences_on_pentagon(
+        V::Vector{Vector{Vector{T}}},
+        param::Union{Int, Nothing}=nothing,
+        sgn::Int=1
+    )
+
+Associate to each sequences a labeling by assign a special value to each element of the sequence.
+
+# Arguments
+- `V::Vector{Vector{Vector{T}}}`: The sequences which should be encoded
+- `param::Union{Int, Nothing}`: (optional) Not required here
+- `sgn::Int`: (optional) Determines if the positive or negative immaculate locus should be considered
+"""
 function configurate_exceptional_sequences_on_pentagon(
         V::Vector{Vector{Vector{T}}},
         param::Union{Int, Nothing}=nothing,
-        sgn::Int64=1
+        sgn::Int=1
     ) where T
-    type_sequences_dict = Dict{Vector{Int64}, Vector{Vector{Vector{T}}}}()
+    type_sequences_dict = Dict{Vector{Int}, Vector{Vector{Vector{T}}}}()
 
     for seq in V
-        type_seq = Vector{Int64}()
+        type_seq = Vector{Int}()
         for vec in seq
             i = -1*sign(sgn)*vec #we want the negative immaculate locus
             
@@ -208,20 +247,32 @@ function configurate_exceptional_sequences_on_pentagon(
     end
 
     return type_sequences_dict
-end;
+end
 
-#---------------------------------------
-# Configurations for the hexagon
-#---------------------------------------
+
+@doc raw"""
+    configurate_exceptional_sequences_on_hexagon(
+        V::Vector{Vector{Vector{T}}},
+        param::Union{Int, Nothing}=nothing,
+        sgn::Int=1
+    )
+
+Associate to each sequences a labeling by assign a special value to each element of the sequence.
+
+# Arguments
+- `V::Vector{Vector{Vector{T}}}`: The sequences which should be encoded
+- `param::Union{Int, Nothing}`: (optional) Not required here
+- `sgn::Int`: (optional) Determines if the positive or negative immaculate locus should be considered
+"""
 function configurate_exceptional_sequences_on_hexagon(
         V::Vector{Vector{Vector{T}}},
         param::Union{Int, Nothing}=nothing,
-        sgn::Int64=1
+        sgn::Int=1
     ) where T
-    type_sequences_dict = Dict{Vector{Int64}, Vector{Vector{Vector{T}}}}()
+    type_sequences_dict = Dict{Vector{Int}, Vector{Vector{Vector{T}}}}()
 
     for seq in V
-        type_seq = Vector{Int64}()
+        type_seq = Vector{Int}()
         for vec in seq
             i = -1*sign(sgn)*vec #we want the negative immaculate locus
             
@@ -284,20 +335,32 @@ function configurate_exceptional_sequences_on_hexagon(
     end
 
     return type_sequences_dict
-end;
+end
 
-#---------------------------------------
-# Configurations for the product P^1 x P^1 x P^1
-#---------------------------------------
+
+@doc raw"""
+    configurate_exceptional_sequences_on_pentagon(
+        V::Vector{Vector{Vector{T}}},
+        param::Union{Int, Nothing}=nothing,
+        sgn::Int=1
+    )
+
+Associate to each sequences a labeling by assign a special value to each element of the sequence.
+
+# Arguments
+- `V::Vector{Vector{Vector{T}}}`: The sequences which should be encoded
+- `param::Union{Int, Nothing}`: (optional) Not required here
+- `sgn::Int`: (optional) Determines if the positive or negative immaculate locus should be considered
+"""
 function configurate_exceptional_sequences_on_p1p1p1(
         V::Vector{Vector{Vector{T}}},
         param::Union{Int, Nothing}=nothing,
-        sgn::Int64=1
+        sgn::Int=1
     ) where T
-    type_sequences_dict = Dict{Vector{Int64}, Vector{Vector{Vector{T}}}}()
+    type_sequences_dict = Dict{Vector{Int}, Vector{Vector{Vector{T}}}}()
 
     for seq in V
-        type_seq = Vector{Int64}()
+        type_seq = Vector{Int}()
         for vec in seq
             i = -1*sign(sgn)*vec #we want the negative immaculate locus
             
@@ -325,11 +388,10 @@ function configurate_exceptional_sequences_on_p1p1p1(
     end
 
     return type_sequences_dict
-end;
+end
 
-#---------------------------------------
+
 # Definition of the dictionary
-#---------------------------------------
 configurations = Dict{Symbol, Function}()
 configurations[:h0] = configurate_exceptional_sequences_on_h0
 configurations[:hr] = configurate_exceptional_sequences_on_hr
@@ -337,36 +399,94 @@ configurations[:pentagon] = configurate_exceptional_sequences_on_pentagon
 configurations[:hexagon] = configurate_exceptional_sequences_on_hexagon
 configurations[:p1p1p1] = configurate_exceptional_sequences_on_p1p1p1
 
+
 ########################################
-# BRUTEFORCE COMPUTATION OF MESES
+# BRUTEFORCE COMPUTATION OF MAXIMAL EXCEPTIONAL SEQUENCES
 ########################################
 
-#---------------------------------------
-# Checks if the difference of v with each vector in V is in the
-# negative immaculate locus
-#---------------------------------------
+
+@doc raw"""
+    is_in_nimmloc(
+        v::Vector{T}, 
+        V::Vector{Vector{T}}, 
+        var::Symbol, 
+        param::Union{Int, Nothing}=nothing,
+        sgn::Int=1
+    )
+
+Check if the difference of v and each vector in V is in the (negative) immaculate locus of the given toric variety.
+
+# Arguments
+- `v::Vector{T}`: The vector which should be checked
+- `V::Vector{Vector{T}}`: The vectors to build the differences 
+- `var::Symbol`: Symbol for the toric variety of interest 
+- `param::Union{Int, Nothing}`: A parameter mandatory for P^n and H_r 
+- `sgn::Int`: Determines if the neagative of positive immaculate locus should be considered
+
+# Examples
+```jldoctest
+julia> is_in_nimmloc([1,1], [[0, 0], [1, 0], [0, 1]], :h0)
+true
+
+julia> is_in_nimmloc([-1,-1], [[0, 0], [1, 0], [0, 1]], :h0)
+false
+
+
+```
+"""
 function is_in_nimmloc(
         v::Vector{T}, 
         V::Vector{Vector{T}}, 
         var::Symbol, 
         param::Union{Int, Nothing}=nothing,
-        sgn::Int64=1
+        sgn::Int=1
     ) where T
     
     difference = [v - w for w in V]
     cond = nimmloc[var]
     return cond.func(difference, param, sgn)
-end;
+end
 
-#---------------------------------------
-# Extend a given exceptional sequence by one element if it fullfills the exceptionality condition
-#---------------------------------------
+
+@doc raw"""
+    extend_exceptional_sequences(
+        E::Vector{Vector{Vector{T}}}, 
+        V::Vector{Vector{T}}, 
+        var::Symbol, 
+        param::Union{Int, Nothing}=nothing,
+        sgn::Int=1
+    )
+
+Extend all given exceptional sequences E by elements in V if the exceptionality condition is fulfilled.
+All sequences in E which can be extended by an element in V are returned.
+
+# Arguments
+- `E::Vector{Vector{Vector{T}}}`: The vector of exceptional sequences which should be checked
+- `V::Vector{Vector{T}}`: The vectors to build the differences 
+- `var::Symbol`: Symbol for the toric variety of interest 
+- `param::Union{Int, Nothing}`: A parameter mandatory for P^n and H_r 
+- `sgn::Int`: Determines if the neagative of positive immaculate locus should be considered
+
+# Examples
+```jldoctest
+julia> E = [[[0, 0], [1, 0], [0, 1]], [[0, 0], [1, 1], [2, 1]]];
+
+julia> V = [[1,1], [-1,-1], [1,2], [-1,-2]];
+
+julia> extend_exceptional_sequences(E,V,:h0)
+2-element Vector{Vector{Vector{Int64}}}:
+ [[0, 0], [1, 0], [0, 1], [1, 1]]
+ [[0, 0], [1, 1], [2, 1], [1, 2]]
+
+
+```
+"""
 function extend_exceptional_sequences(
         E::Vector{Vector{Vector{T}}}, 
         V::Vector{Vector{T}}, 
         var::Symbol, 
         param::Union{Int, Nothing}=nothing,
-        sgn::Int64=1
+        sgn::Int=1
     ) where T
     
     new_sequences = Vector{Vector{Vector{T}}}()
@@ -381,18 +501,52 @@ function extend_exceptional_sequences(
     end
     
     return new_sequences
-end;
+end
 
-#---------------------------------------
-# Generate all exceptional sequences of length search_depth-1,
-# where the first element is the trivial element in the Picard group
-#---------------------------------------
+
+@doc raw"""
+    generate_exceptional_sequences(
+        var::Symbol,
+        search_range::Vector{UnitRange{T}},
+        search_depth::Int;
+        param::Union{Int, Nothing}=nothing,
+        sgn::Int=1
+    )
+
+Generate all exceptional sequences of length `search_depth-1`, where the first element is the trivial element in the Picard group.
+
+# Arguments
+- `var::Symbol`: Symbol for the toric variety of interest
+- `search_range::Vector{UnitRange{T}}`: Determines the used coefficients in the Picard group
+- `search_depth::Int`: Determines the length of the sequences
+- `param::Union{Int, Nothing}`: A parameter mandatory for P^n and H_r 
+- `sgn::Int`: Determines if the neagative of positive immaculate locus should be considered
+
+# Examples
+```jldoctest
+julia> generate_exceptional_sequences(:h0, [-1:1, -1:1], 3)
+We reached step 1
+There are 5 sequences of length 2
+
+We reached step 2
+There are 8 sequences of length 3
+
+We reached step 3
+There are 4 sequences of length 4
+
+4-element Vector{Vector{Vector{Int64}}}:
+ [[0, 0], [0, 1], [1, -1], [1, 0]]
+ ⋮
+ [[0, 0], [1, 0], [0, 1], [1, 1]]
+
+```
+"""
 function generate_exceptional_sequences(
         var::Symbol,
         search_range::Vector{UnitRange{T}},
         search_depth::Int;
         param::Union{Int, Nothing}=nothing,
-        sgn::Int64=1
+        sgn::Int=1
     ) where T
     
     l = length(search_range)
@@ -422,59 +576,104 @@ function generate_exceptional_sequences(
     end
 
     return initial_sequences
-end; 
+end
 
-########################################
-# CONDITIONS FOR (MAXIMAL) EXCEPTIONAL SEQUENCES
-########################################
 
-#---------------------------------------
-# Check if a given sequence is exceptional (possible for all varieties in nimmloc)
-#---------------------------------------
-function is_exceptional(
+@doc raw"""
+    is_exceptional(
         var::Symbol,
         V::Vector{Vector{T}};
         param::Union{Int, Nothing}=nothing,
         sgn::Int64=1,
         M::Matrix{Int64} = Matrix{Int}(I,length(V[1]),length(V[1]))
+    )
+
+Check if a given sequence is exceptional (possible for all varieties in nimmloc).
+
+# Arguments
+- `var::Symbol`: Symbol for the toric variety of interest
+- `V::Vector{Vector{T}}`: The sequence which should be checked for exceptionality
+- `param::Union{Int, Nothing}`: A parameter mandatory for P^n and H_r 
+- `sgn::Int`: Determines if the neagative of positive immaculate locus should be considered
+- `M::Matrix{Int64}`: Applies a base change of the class group
+
+# Examples
+```jldoctest
+julia> is_exceptional(:h0, [[0, 0], [1, 0], [0, 1], [1, 1]])
+true
+
+julia> is_exceptional(:h0, [[0, 0], [1, 0], [0, 1], [2, 1]])
+false
+
+
+```
+"""
+function is_exceptional(
+        var::Symbol,
+        V::Vector{Vector{T}};
+        param::Union{Int, Nothing}=nothing,
+        sgn::Int=1,
+        M::Matrix{Int} = Matrix{Int}(I,length(V[1]),length(V[1]))
     ) where T
 
     # base change via M
     V = [M*v for v in V]
-
-    l = length(V)
-
-    for i in 2:l
-        V_sub = V[1:i-1]
-        V_i = V[i]
-        if is_in_nimmloc(V_i, V_sub, var, param, sgn) == false
+ 
+    for i in 2:length(V)
+        if !is_in_nimmloc(V[i], V[1:i-1], var, param, sgn)
             return false
-            break
         end
     end
 
     return true
-end;
+end
 
 
 ########################################
-# AUGMENTATION + HELIXING
+# OPERATIONS ON EXCEPTIONAL SEQUENCES
 ########################################
 
 
-# Calculate the augmentions of a maximal exceptional sequence on a toric surface
-# mes - the maximal exceptional sequence whose augmentations should be calculated
-# E - the exceptional divisor of the blow up
-# p - the pullback of divisors
-#---------------------------------------
-function calculate_augmentation_on_surface(mes::Vector{Vector{T}}, E::Vector{Int64}, pullback) where T
+@doc raw"""
+    calculate_augmentation_on_surface(
+        mes::Vector{Vector{T}},
+        E::Vector{Int},
+        pullback
+    )
+
+Calculate the augmentions of a maximal exceptional sequence on a toric surface.
+
+# Arguments
+- `mes::Vector{Vector{T}}`: the maximal exceptional sequence whose augmentations should be calculated
+- `E::Vector{Int}`: the exceptional divisor of the blow up
+- `pullback`: the pullback function of divisors
+
+# Examples
+```jldoctest
+julia> p2_S = [[0], [1], [2]];
+
+julia> h1_E = [-1,1];
+
+julia> h1_pullback = (vec) -> [0, vec[1]];
+
+julia> calculate_augmentation_on_surface(p2_S, h1_E, h1_pullback)
+3-element Vector{Vector{Vector{Int64}}}:
+ [[0, 0], [-1, 1], [0, 1], [0, 2]]
+ [[0, 0], [1, 0], [0, 1], [1, 1]]
+ [[0, 0], [0, 1], [1, 1], [0, 2]]
+
+```
+"""
+function calculate_augmentation_on_surface(
+        mes::Vector{Vector{T}},
+        E::Vector{Int},
+        pullback
+    ) where T
     
-    augmentations = Vector{Vector{T}}[]
-    l = length(mes)
-    
+    augmentations = Vector{Vector{T}}[]    
     pmes = pullback.(mes)
     
-    for i in 1:l
+    for i in 1:length(mes)
         aug = copy(pmes)
         insert!(aug, i, aug[i])
                
@@ -490,28 +689,77 @@ function calculate_augmentation_on_surface(mes::Vector{Vector{T}}, E::Vector{Int
     end
     
     return augmentations
-end;
+end
 
-#---------------------------------------
-# Calculate the helixing of a maximal exceptional sequence
-# mes - the maximal exceptional sequence that is helexed
-# K - the anticanonical divisor -K_X in Pic(X) of a toric variety X 
-#---------------------------------------
-function calculate_helixing(mes::Vector{Vector{T}}, K::Vector{Int64}) where T
+
+@doc raw"""
+    calculate_helixing(
+        mes::Vector{Vector{T}},
+        K::Vector{Int}
+    )
+
+Calculate the helixing of a maximal exceptional sequence.
+
+# Arguments
+- `mes::Vector{Vector{T}}`: the maximal exceptional sequence that is helexed
+- `K::Vector{Int}`: the anticanonical divisor -K_X in Pic(X) of a toric variety X
+
+# Examples
+```jldoctest
+julia> mes = [[0,0,0], [1,1,-1], [1,0,0], [0,1,0], [1,1,0]];
+
+julia> calculate_helixing(mes, [1,1,1])
+5-element Vector{Vector{Int64}}:
+ [0, 0, 0]
+ ⋮
+ [0, 0, 2]
+
+```
+"""
+function calculate_helixing(
+        mes::Vector{Vector{T}},
+        K::Vector{Int}
+    ) where T
     l = length(mes)
+    l < 2 && throw(ArgumentError("mes must contain at least 2 vectors"))
+
     helexed_mes = mes[2:l]
     push!(helexed_mes, mes[1]+K)
     helexed_mes = [vec.-helexed_mes[1] for vec in helexed_mes]
     
     return helexed_mes
-end;
+end
 
-#---------------------------------------
-# Calculate all helixings of a maximal exceptional sequence
-# mes - the maximal exceptional sequence that is helexed
-# K - the anticanonical divisor -K_X in Pic(X) of a toric variety X 
-#---------------------------------------
-function calculate_all_helixing(mes::Vector{Vector{T}}, K::Vector{Int64}) where T
+
+@doc raw"""
+    calculate_all_helixing(
+        mes::Vector{Vector{T}},
+        K::Vector{Int}
+    )
+
+Calculate all helixings of a maximal exceptional sequence.
+
+# Arguments
+- `mes::Vector{Vector{T}}`: the maximal exceptional sequence that is helexed
+- `K::Vector{Int}`: the anticanonical divisor -K_X in Pic(X) of a toric variety X
+
+# Examples
+```jldoctest
+julia> mes = [[0,0,0], [1,1,-1], [1,0,0], [0,1,0], [1,1,0]];
+
+julia> calculate_all_helixing(mes, [1,1,1])
+5-element Vector{Vector{Vector{Int64}}}:
+ [[0, 0, 0], [1, 1, -1], [1, 0, 0], [0, 1, 0], [1, 1, 0]]
+ ⋮
+ [[0, 0, 0], [0, 0, 1], [1, 1, 0], [1, 0, 1], [0, 1, 1]]
+
+```
+"""
+function calculate_all_helixing(
+        mes::Vector{Vector{T}},
+        K::Vector{Int}
+    ) where T
+
     period = length(mes)  
     
     all_helexed_mes = Vector{Vector{T}}[]
@@ -524,34 +772,75 @@ function calculate_all_helixing(mes::Vector{Vector{T}}, K::Vector{Int64}) where 
         current_mes = current_helex
     end
     
-    return all_helexed_mes
-    
-end;
+    return all_helexed_mes   
+end
 
-#---------------------------------------
-# Calculate the dualized sequence of a mes
-# mes - the maximal exceptional sequence that is helexed
-# K - the canonical divisor K_X in Pic(X) of a toric variety X 
-#---------------------------------------
 
-function calculate_dualizing(mes::Vector{Vector{T}}, K::Vector{Int64}) where T
+@doc raw"""
+    calculate_dualizing(
+        mes::Vector{Vector{T}},
+        K::Vector{Int}
+    )
+
+Calculate the dualized sequence of a mes.
+
+# Arguments
+- `mes::Vector{Vector{T}}`: the maximal exceptional sequence that is dualized
+- `K::Vector{Int}`: the anticanonical divisor -K_X in Pic(X) of a toric variety X
+
+# Examples
+```jldoctest
+julia> mes = [[0,0,0], [1,1,-1], [1,0,0], [0,1,0], [1,1,0]];
+
+julia> calculate_dualizing(mes, [1,1,1])
+5-element Vector{Vector{Int64}}:
+ [0, 0, 0]
+ ⋮
+ [1, 1, 0]
+
+```
+"""
+function calculate_dualizing(
+        mes::Vector{Vector{T}},
+        K::Vector{Int}
+    ) where T
     l = length(mes)
     
     inverted_mes = [-K .- mes[l+1-i] for i in 1:l]
     inverted_mes = [vec.-inverted_mes[1] for vec in inverted_mes]
     
     return inverted_mes
-end;
+end
 
 
-########################################
-# FLIPPING
-########################################
+@doc raw"""
+    calculate_dualizing(
+        mes::Vector{Vector{T}},
+        K::Vector{Int}
+    )
 
-#---------------------------------------
-# Calculate the flipping for a given permutation of a maximal exceptional sequence on a toric surface
-#---------------------------------------
-function calculate_flipping(V::Vector{Vector{T}}, perm::Vector{Int64}) where T
+Calculate the flipping for a given permutation of a maximal exceptional sequence on a toric surface.
+
+# Arguments
+- `mes::Vector{Vector{T}}`: the maximal exceptional sequence that is flipped
+- `K::Vector{Int}`: the anticanonical divisor -K_X in Pic(X) of a toric variety X
+
+# Examples
+```jldoctest
+julia> mes = [[0,0,0], [1,1,-1], [1,0,0], [0,1,0], [1,1,0]];
+
+julia> calculate_flipping(mes, [2,3,1])
+5-element Vector{Vector{Int64}}:
+ [0, 0, 0]
+ ⋮
+ [1, 0, 1]
+
+```
+"""
+function calculate_flipping(
+        V::Vector{Vector{T}},
+        perm::Vector{Int}
+    ) where T
     
     flipping = Vector{T}[]
     
@@ -560,17 +849,108 @@ function calculate_flipping(V::Vector{Vector{T}}, perm::Vector{Int64}) where T
     end
   
     return flipping
-end;
+end
 
 
 ########################################
 # FULLNESS CONDITIONS
+# cf. https://arxiv.org/abs/2304.01269
 ########################################
 
-#---------------------------------------
-# Checks if ph_ac(E1,...,En) > -dim X, compare Krah
-#---------------------------------------
-function is_not_full_by_krah(seq::Vector{Vector{Int64}}, variety::NormalToricVariety)
+function relative_height(variety::NormalToricVariety, si::Vector{Int64}, sj::Vector{Int64})
+    diff = sj - si
+    tdc = toric_divisor_class(variety, diff)
+    tl = toric_line_bundle(toric_divisor(tdc))
+    cohom = all_cohomologies(tl)
+    k = findfirst(x -> x != 0, cohom)
+    
+    if isnothing(k)
+        return Inf
+    end
+            
+    return k-1
+end
+
+function anticanonical_pseudoheight(variety::NormalToricVariety, seq::Vector{Vector{Int}})
+    n = length(seq)
+    KX = -transform_abelian_group_element(picard_class(canonical_bundle(variety)))
+    best = Inf
+
+    # helper to compute relative heights
+    function e(i::Int, j::Int)
+        relative_height(variety, seq[i], seq[j])
+    end
+
+    # helper: e(D_{a_p}, D_{a₀} + K_X)
+    function e_anticanonical(i::Int, j::Int)
+        target = seq[j] + KX  # shift by K_X
+        relative_height(variety, seq[i], target)
+    end
+
+    # iterate over all strictly increasing chains of indices
+    for p in 1:n
+        for chain in Combinatorics.combinations(1:n, p)
+            s = 0
+            bad = false
+            # sum over e(D_ai, D_{ai+1})
+            for t in 1:(p-1)
+                val = e(chain[t], chain[t+1])
+                if val == Inf
+                    bad = true
+                    break
+                end
+                s += val
+            end
+            if bad
+                continue
+            end
+            # add the last term e(D_{a_p}, D_{a_0} + K_X)
+            lastval = e_anticanonical(chain[end], chain[1])
+            if lastval == Inf
+                continue
+            end
+            total = s + lastval - (p - 1)
+            best = min(best, total)
+            
+            #println([total,best])
+        end
+    end
+
+    return Int(best)
+end
+
+function kuznetsov_fullness_condition(variety::NormalToricVariety, seq::Vector{Vector{Int}})
+    ph_ac = anticanonical_pseudoheight(variety, seq)  
+    return ph_ac <= -dim(variety)
+end
+
+# OUTDATED/WRONG since it does not treat p correctly (it has to be reduced by -1)
+
+@doc raw"""
+    is_not_full_by_krah(
+        seq::Vector{Vector{Int}},
+        variety::NormalToricVariety
+    )
+
+Check if ph_ac(E1,...,En) > -dim X
+
+# Arguments
+- `seq::Vector{Vector{Int}}`: a maximal exceptional sequence
+- `variety::NormalToricVariety`: the toric variety for which the sequence comes from
+
+# Examples
+```jldoctest
+julia> mes = [[0,0,0], [1,1,-1], [1,0,0], [0,1,0], [1,1,0]];
+
+julia> is_not_full_by_krah(mes, define_pentagon())
+false
+
+```
+"""
+function is_not_full_by_krah(
+        seq::Vector{Vector{Int}},
+        variety::NormalToricVariety
+    )
     
     l = length(seq)    
     if l != n_maximal_cones(polyhedral_fan(variety))
@@ -592,12 +972,34 @@ function is_not_full_by_krah(seq::Vector{Vector{Int64}}, variety::NormalToricVar
     end
     
     return true
-end;
+end
 
-#---------------------------------------
-# Calculates the anticanonical pseudoheight
-#---------------------------------------
-function calculate_anticanonical_pseudoheight(seq::Vector{Vector{Int64}}, variety::NormalToricVariety)
+
+@doc raw"""
+    calculate_anticanonical_pseudoheight(
+        seq::Vector{Vector{Int}},
+        variety::NormalToricVariety
+    )
+
+Calculate the anticanonical pseudoheight.
+
+# Arguments
+- `seq::Vector{Vector{Int}}`: a maximal exceptional sequence
+- `variety::NormalToricVariety`: the toric variety for which the sequence comes from
+
+# Examples
+```jldoctest
+julia> mes = [[0,0,0], [1,1,-1], [1,0,0], [0,1,0], [1,1,0]];
+
+julia> calculate_anticanonical_pseudoheight(mes, define_pentagon())
+-3
+
+```
+"""
+function calculate_anticanonical_pseudoheight(
+        seq::Vector{Vector{Int}},
+        variety::NormalToricVariety
+    )
     
     l = length(seq)    
     if l != n_maximal_cones(polyhedral_fan(variety))
@@ -623,7 +1025,7 @@ function calculate_anticanonical_pseudoheight(seq::Vector{Vector{Int64}}, variet
     end
     
     # calculate all possile values for which the infimum is build
-    comb_all = filter(x -> length(x)>1, collect(combinations(1:l))) 
+    comb_all = filter(x -> length(x)>1, collect(Combinatorics.combinations(1:l))) 
     
     # calculate the divisor class of the anticanonical line bundle
     acdc = divisor_class(anticanonical_divisor_class(variety)) 
@@ -667,14 +1069,7 @@ function calculate_anticanonical_pseudoheight(seq::Vector{Vector{Int64}}, variet
     ph_ac = Int64(ph_ac)
     
     return ph_ac
-end;
-
-
-
-
-
-
-
+end
 
 
 

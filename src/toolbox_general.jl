@@ -2,50 +2,100 @@
 # CREATE OR MANIPULATE VECTORS
 ########################################
 
-#---------------------------------------
-# Generates all vectors of length n with entries in range r
-#---------------------------------------
+
+@doc raw"""
+    generate_vectors(n::Int, r::UnitRange{Int})
+
+Generates all vectors of length n with entries in range r.
+
+# Arguments
+- `n::Int`: Length of the vectors
+- `r::UnitRange{Int}`: Range of the coefficients in the vectors
+
+# Examples
+```jldoctest
+julia> generate_vectors(2, 0:1)
+4-element Vector{Vector{Int64}}:
+ [0, 0]
+ ⋮
+ [1, 1]
+
+
+```
+"""
 function generate_vectors(n::Int, r::UnitRange{Int})
-    if n == 1
-        return [[x] for x in r]
-    else
-        subvectors = generate_vectors(n - 1, r)
-        vectors = []
-        for x in r, subvector in subvectors
-            push!(vectors, [x, subvector...])
+    vectors = [Int[]]
+    for _ in 1:n
+        new_vectors = Vector{Vector{Int}}(undef, length(r) * length(vectors))
+        idx = 1
+        for v in vectors, x in r
+            new_vectors[idx] = [v... , x]
+            idx += 1
         end
-        return vectors
+        vectors = new_vectors
     end
-end;
+    return vectors
+end
 
-#---------------------------------------
-# Returns all possible vectors with values in the input ranges
-#---------------------------------------
 
-function generate_vectors_from_ranges(r::Vector{UnitRange{T}}) where T
-    # Base case: If there's only one range, return the vectors in that range
-    if length(r) == 1
-        return [elem for elem in r[1]]
-    end
-    
-    # Recursive case: Generate vectors for the first range
-    vectors = generate_vectors_from_ranges(r[1:end-1])
-    new_range = r[end]
-    
-    # Extend each vector with elements from the last range
-    new_vectors = Vector{Int}[]
-    for vec in vectors
-        for elem in new_range
-            push!(new_vectors, [vec..., elem])
+@doc raw"""
+    generate_vectors_from_ranges(r::Vector{UnitRange{T}})
+
+Generates all vectors of with entries in a unit range.
+The first range defiens the range for the first entries, etc.
+
+# Arguments
+- `r::Vector{UnitRange{T}}`: Ranges corresponding to the entries of the generated vector
+
+# Examples
+```jldoctest
+julia> generate_vectors_from_ranges([0:1, 2:3])
+4-element Vector{Vector{Int64}}:
+ [0, 2]
+ ⋮
+ [1, 3]
+
+
+```
+"""
+function generate_vectors_from_ranges(r::Vector{UnitRange{T}}) where {T<:Integer}
+    vectors = [Vector{T}([])]
+    for range in r
+        new_vectors = Vector{Vector{T}}(undef, length(vectors) * length(range))
+        idx = 1
+        for vec in vectors, elem in range
+            new_vectors[idx] = vcat(vec, elem)
+            idx += 1
         end
+        vectors = new_vectors
     end
-    
-    return new_vectors
-end;
+    return vectors
+end
 
-#---------------------------------------
-# Transforms a RayVector or Vector with ring elements into an integer vector
-#---------------------------------------
+
+@doc raw"""
+    transform_rayvector(R::Any)
+
+Transform a indexable object of any type into integer type.
+
+# Arguments
+- `R::Any`: Object which entries are transformed into integers
+
+# Examples
+```jldoctest
+julia> h1 = define_hirzebruch_surface(1);
+
+julia> td = toric_divisor(h1, [1,2,3,4]);
+
+julia> transform_rayvector(coefficients(td))
+4-element Vector{Int64}:
+ 1
+ ⋮
+ 4
+
+
+```
+"""
 function transform_rayvector(R::Any)
     vect = Int64[]
     for j in eachindex(R)
@@ -54,49 +104,157 @@ function transform_rayvector(R::Any)
     end
     
     return vect
-end;
+end
 
-#---------------------------------------
-# Transforms a Sequence of Type T into a integer sequence
-#---------------------------------------
-function transform_raysequence(seq::Vector{Vector{T}}) where T
-    int_seq = Vector{Int64}[]
-    for vec in seq
-        int_vec = transform_rayvector(vec)
-        push!(int_seq, int_vec)  
+
+@doc raw"""
+    transform_raysequence(seq::Vector{Vector{T}})
+
+Transforms a Vector of RayVector or Vector with ring elements into a vector of integer vectors.
+
+# Arguments
+- `seq::Vector{Vector{T}}`: The vector of vectors which is transformed into a vector of integer vectors
+
+# Examples
+```jldoctest
+julia> h1 = define_hirzebruch_surface(1);
+
+julia> td1 = toric_divisor(h1, [1,2,3,4]);
+
+julia> td2 = toric_divisor(h1, [4,3,2,1]);
+
+julia> transform_raysequence([coefficients(td1), coefficients(td2)])
+2-element Vector{Vector{Int64}}:
+ [1, 2, 3, 4]
+ [4, 3, 2, 1]
+
+
+```
+"""
+transform_raysequence(seq::Vector{Vector{T}}) where T = [transform_rayvector(vec) for vec in seq]
+
+
+"""
+    transform_abelian_group_element(g::FinGenAbGroupElem) -> Vector{Int64}
+
+Convert a finitely generated abelian group element `g` into a plain vector
+of integers by iterating over its coordinates.
+
+Each coordinate of `g` (accessed via `g[j]` for `j = 1:rank(parent(g))`)
+is converted to `Int64` and collected into a standard Julia vector.
+
+# Arguments
+- `g::FinGenAbGroupElem`: an element of a finitely generated abelian group, 
+  as provided by the Oscar/Hecke algebraic structures.
+
+# Returns
+- `Vector{Int64}`: a vector containing the integer coordinates of `g`
+  with respect to the chosen generators of its parent group.
+
+# Example
+```jldoctest
+julia> h1 = define_hirzebruch_surface(1);
+
+julia> Kh1 = picard_class(canonical_bundle(h1));
+
+julia> transform_abelian_group_element(Kh1)
+
+
+```
+"""
+function transform_abelian_group_element(g::FinGenAbGroupElem)
+    vect = Int64[]
+    for j in 1:rank(parent(g))
+        entry = Int64(g[j])
+        push!(vect,entry)
     end
-    return int_seq
-end;
+    
+    return vect
+end
 
-#---------------------------------------
-# Convert a vector of vectors into a dataframe
-#---------------------------------------
+
+@doc raw"""
+    convert_to_df(vec::Vector{Vector{T}})
+
+Convert a vector of vector into a dataframe.
+
+# Arguments
+- `vec::Vector{Vector{T}}`: The vector of vectors which is transformed into a dataframe
+
+# Examples
+```jldoctest
+julia> convert_to_df([[1,2], [3,4]])
+2×2 DataFrame
+ Row │ x1     x2
+     │ Int64  Int64
+─────┼──────────────
+  ⋮  │   ⋮      ⋮
+      2 rows omitted
+
+
+```
+"""
 function convert_to_df(vec::Vector{Vector{T}}) where T
     matrix = transpose(hcat(vec...)) 
     df = DataFrame(matrix, :auto)
     return df
-end;
+end
 
-#---------------------------------------
-# Sorts a vector of point clockwise around its centroid
-#---------------------------------------
-function sort_points_clockwise(points)
-    centroid = [sum(p[1] for p in points) / length(points), sum(p[2] for p in points) / length(points)]
-    angles = [atan(p[2] - centroid[2], p[1] - centroid[1]) for p in points]
+
+@doc raw"""
+    sort_points_clockwise(points::Vector{<:AbstractVector{<:Real}})
+
+Sort a vector of point clockwise around its centroid.
+
+# Arguments
+- `points::Vector{<:AbstractVector{<:Real}}`: Points which are sorted clockwise
+# Examples
+```jldoctest
+julia> sort_points_clockwise([[1,0], [-1,0], [0,1], [0,-1]])
+4-element Vector{Vector{Int64}}:
+ [0, -1]
+ ⋮
+ [-1, 0]
+
+
+```
+"""
+function sort_points_clockwise(points::Vector{<:AbstractVector{<:Real}})
+    n = length(points)
+    cx = sum(p[1] for p in points) / n
+    cy = sum(p[2] for p in points) / n
+
+    angles = Vector{Float64}(undef, n)
+    for i in 1:n
+        p = points[i]
+        angles[i] = atan(p[2] - cy, p[1] - cx)
+    end
+
     sorted_indices = sortperm(angles)
     sorted_points = [points[i] for i in sorted_indices]
     
     return sorted_points
-end;
+end
 
 
 ########################################
 # PRINT LATEX STRINGS
 ########################################
 
-#---------------------------------------
-# Prints a vector of vector of vectors as a latex table
-#---------------------------------------
+@doc raw"""
+    print_latex_code(
+        V::Vector{Vector{Vector{Vector{T}}}},
+        path::String,
+        name::String
+    )
+
+Transform a vector of vector of vectors into latex code.
+
+# Arguments
+- `V::Vector{Vector{Vector{Vector{T}}}}`: Vector which is transformed into latex code
+- `path::String`: Define the path where the latex code is saved
+- `name::String`: Define the name of the vector
+"""
 function print_latex_code(
         V::Vector{Vector{Vector{Vector{T}}}},
         path::String,
@@ -108,63 +266,68 @@ function print_latex_code(
     n_vec = length(V[1][1])
     n_ele = length(V[1][1][1])
 
-    cols_string = "\\begin{array}{|c|"
-    cols_string *= repeat("c|", n_vec-1)
-    cols_string *= "}\n"
+    cols_string = "\\begin{array}{|c|" * repeat("c|", n_vec-1) * "}\n"
 
-    string = ""
+    buf = IOBuffer()
 
     for index_hex in 1:n_V
-        string *= "\\resizebox{\\textwidth}{!}{\$\\displaystyle\n"
-        string *= "\\renewcommand{\\arraystretch}{2.5}\n"    
-        string *= cols_string
-        string *= "\\hline\n"
-        string *= "$(name)_{$(index_hex)}^{0} &\n"
-        string *= "\\begin{psmallmatrix}\n"
-        
+        println(buf, "\\resizebox{\\textwidth}{!}{\$\\displaystyle")
+        println(buf, "\\renewcommand{\\arraystretch}{2.5}")
+        print(buf, cols_string)
+        println(buf, "\\hline")
+        println(buf, "$(name)_{$index_hex}^{0} &")
+        println(buf, "\\begin{psmallmatrix}")
+
+        # First sequence (helex = 0)
+        seq0 = V[index_hex][1]
         for row in 1:n_ele
             for col in 1:n_vec
-                el = V[index_hex][1][col][row]
-                col != n_vec ? string *= "$el & " : string *= "$el "
+                el = seq0[col][row]
+                if col != n_vec
+                    print(buf, "$el & ")
+                else
+                    print(buf, el)
+                end
             end
-            string *= "\\\\\n"
+            println(buf, " \\\\")
         end
-        
-        string *= "\\end{psmallmatrix}\n"
-        string *= "&\n"
+        println(buf, "\\end{psmallmatrix}")
+        println(buf, "&")
 
+        # Remaining sequences
         for helex in 1:n_seq-1
-            string *= "$(name)_{$(index_hex)}^{$(helex)} &\n"
-            string *= "\\begin{psmallmatrix}\n"
-
+            println(buf, "$(name)_{$index_hex}^{$helex} &")
+            println(buf, "\\begin{psmallmatrix}")
+            seqh = V[index_hex][helex+1]
             for row in 1:n_ele
                 for col in 1:n_vec
-                    el = V[index_hex][helex+1][col][row]
-                    col != n_vec ? string *= "$el & " : string *= "$el "
+                    el = seqh[col][row]
+                    if col != n_vec
+                        print(buf, "$el & ")
+                    else
+                        print(buf, el)
+                    end
                 end
-            string *= "\\\\\n"
+                println(buf, " \\\\")
             end
-
-            string *= "\\end{psmallmatrix}\n"
+            println(buf, "\\end{psmallmatrix}")
 
             if (helex == 2 || helex == n_seq-1)
-                string *= "\\\\[1.5ex]\n"
-                string *= "\\hline\n"
+                println(buf, "\\\\[1.5ex]")
+                println(buf, "\\hline")
             else
-                string *= "&\n"
+                println(buf, "&")
             end
         end
 
-        string *= "\\end{array}\$\n"
-        string *= "}\n"
-        #string *= "\\vspace*{0.35cm}\n"
-        string *= "\n"
-                    
+        println(buf, "\\end{array}\$")
+        println(buf, "}")
+        println(buf)
     end
 
     open(path, "w") do file
-        write(file, string)
+        write(file, String(take!(buf)))
     end
 
     return "File was saved as $path"
-end    
+end

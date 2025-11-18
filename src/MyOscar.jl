@@ -4,7 +4,9 @@ module MyOscar
 # load required packages
 ########################################
 using Pkg
-using Oscar
+using Revise
+using Test 
+using Documenter
 using Plots
 gr()
 using DataFrames
@@ -12,6 +14,14 @@ using CSV
 using LinearAlgebra
 using Combinatorics
 using Serialization
+using StatsBase
+using Oscar
+
+# See https://github.com/oscar-system/Oscar.jl/blob/master/src/imports.jl
+for i in names(Oscar)
+    @eval import Oscar: $i
+    @eval export $i
+  end
 
 
 ########################################
@@ -22,6 +32,7 @@ export generate_vectors
 export generate_vectors_from_ranges
 export transform_rayvector
 export transform_raysequence
+export transform_abelian_group_element
 export convert_to_df
 export sort_points_clockwise
 
@@ -48,11 +59,19 @@ export calculate_nef_pair
 
 export get_exceptional_divisor
 
+export is_query_block_contained
+export calculate_secondary_fan 
+export find_adjacent_cones
+export oriented_cocircuit
+export extremal_position
+export classify_vector
+
 
 ########################################
 ########################################
 include("toolbox_immaculate_locus.jl")
 
+export ilb_range
 export get_immaculate_lb
 
 export calculate_tempting_subsets
@@ -75,10 +94,17 @@ export calculate_planary_parallelograms
 ########################################
 include("toolbox_infection.jl")
 
+export generate_integral_tuples
+export map_intergral_tuples
+export negate_rule
+export apply_base_change
+export collect_infection_rules
+export infection_step
+export infection_procedure
+
 export calculate_infectionstep_of_pentagon
 export search_infections_of_pentagon
 export search_infections_of_pentagon_bool
-export visualize_infection_of_pentagon
 
 export calculate_infectionstep_of_hexagon
 export search_infections_of_hexagon
@@ -111,26 +137,38 @@ export calculate_dualizing
 
 export calculate_flipping
 
-export is_not_full_by_krah
-export calculate_anticanonical_pseudoheight
+export relative_height
+export anticanonical_pseudoheight
+export kuznetsov_fullness_condition
+
+#export is_not_full_by_krah
+#export calculate_anticanonical_pseudoheight
 
 
 ########################################
 ########################################
 include("toolbox_visualization.jl")
 
+export visualize_tikz
+export visualize_mode
+
 export plot_data
 
 export create_gif_from_df
 export create_gif_from_vector
+export create_gif_2D
 
-export plot_maculate_regions
+export plot2d_maculate_regions
 export plot3d_maculate_regions
 export visualize_projection_of_immaculate_linebundles_for_pic3
 
 export visualize3d_sequence_by_layers
 export visualize3d_sequence_moving_lines
 export visualize3d_sequence_process_by_layers
+
+export visualize_infection_of_pentagon
+export plot_infection_step_2D
+export plot_infection_procedure
 
 
 ########################################
@@ -139,29 +177,4 @@ include("toolbox_sympy.jl")
 # add function if it works when pushing on github
 
 
-#=
-These function might be needed for older code
-##########
-#include("toolbox_mes.jl")
-
-#export generate_vectors_from_ranges
-#export is_in_locus_of_pentagon
-#export advanced_extend_sequences
-#export advanced_brute_force_exseq_for_pentagon_in_zero
-#export group_by_type_sequence
-#export plot_type
-#export plot_type_allseq
-
-
-##########
-#include("toolbox_exceptional_sequences.jl")
-#
-#export calculate_augmentations_of_mes
-#export calculate_helex_of_mes
-#export calculate_all_helex_of_mes
-#export has_duplicates
-#export calculate_inverted_mes
-#export search_duplicates
-=#
-
-end;
+end
