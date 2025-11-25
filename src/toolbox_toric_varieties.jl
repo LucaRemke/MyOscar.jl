@@ -182,7 +182,69 @@ Abelian group element [1, 2]
 """
 function get_representative_of_divisor(td::ToricDivisor) 
     return divisor_class(toric_divisor_class(td)) 
-end;
+end
+
+
+function divisor_class_int(td::ToricDivisor)
+    return transform_abelian_group_element(get_representative_of_divisor(td))
+end
+
+
+function compute_divisor_classes_and_base(variety)
+    # 1. Pre-calculate fixed properties
+    fan = polyhedral_fan(variety)
+    nrays = n_rays(fan)
+    cl = class_group(variety)
+    cl_rank = torsion_free_rank(cl)
+
+    # 2. Initialize containers
+    # Pre-allocate the vector of all divisor classes for efficiency
+    all_reps = Vector{Int}[]
+    sizehint!(all_reps, nrays) # Optional: hint the expected size
+
+    # Use a mutable set of generator representations for fast lookups and deletion
+    # Ensure the generator creation is correct for the vector type from divisor_class_int
+    generators_set = Set{Vector{Int}}()
+    for i in 1:cl_rank
+        # Create the unit vector: [0, ..., 1, ..., 0]
+        gen = zeros(Int, cl_rank)
+        gen[i] = 1
+        push!(generators_set, gen)
+    end
+    
+    base = Int[] # The indices of the generators found
+
+    # 3. Iterate over the rays efficiently
+    # Use a pre-allocated vector that is modified in place inside the loop (optional but fast)
+    ray_vector = zeros(Int, nrays) 
+    
+    for c in 1:nrays
+        # Reset the previous 1 and set the new one (if c > 1)
+        if c > 1
+            ray_vector[c-1] = 0 
+        end
+        ray_vector[c] = 1
+        
+        # Calculate the divisor class
+        div_c = toric_divisor(variety, ray_vector)
+        cl_c = divisor_class_int(div_c)
+
+        # Use the Set for quick check and removal
+        if cl_c in generators_set
+            push!(base, c)
+            delete!(generators_set, cl_c) # O(1) average time complexity for Set deletion
+        end
+        
+        push!(all_reps, cl_c)
+    end
+    
+    # Optional: Check if all generators were found
+    if !isempty(generators_set)
+        @warn "Only found $(cl_rank - length(generators_set)) out of $(cl_rank) class group generators."
+    end
+
+    return base, all_reps
+end
 
 
 @doc raw"""

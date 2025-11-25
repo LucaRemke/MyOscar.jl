@@ -6,7 +6,7 @@
 ########################################
 using PyCall
 pyimport("sympy")
-using SymPy;
+using SymPy
 
 
 ########################################

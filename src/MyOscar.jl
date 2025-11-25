@@ -3,12 +3,12 @@ module MyOscar
 ########################################
 # load required packages
 ########################################
-using Pkg
-using Revise
-using Test 
-using Documenter
+#using Pkg
+#using Revise
+#using Test 
+#using Documenter
 using Plots
-gr()
+#gr()
 using DataFrames
 using CSV
 using LinearAlgebra
@@ -21,8 +21,12 @@ using Oscar
 for i in names(Oscar)
     @eval import Oscar: $i
     @eval export $i
-  end
+end
 
+# May not working
+using PyCall
+pyimport("sympy")
+using SymPy
 
 ########################################
 ########################################
@@ -33,8 +37,12 @@ export generate_vectors_from_ranges
 export transform_rayvector
 export transform_raysequence
 export transform_abelian_group_element
+export multiply_nested_vectors_map
 export convert_to_df
 export sort_points_clockwise
+
+export nesting_depth
+export transition_matrix
 
 export print_latex_code
 
@@ -52,6 +60,8 @@ export define_pentagon
 export define_hexagon
 
 export get_representative_of_divisor
+export divisor_class_int
+export compute_divisor_classes_and_base
 export show_generators_and_relations_of_classgroup
 export calculate_cartier_data
 export check_nef_conditions
@@ -130,7 +140,28 @@ export generate_exceptional_sequences
 
 export is_exceptional
 
+export get_picard_points
+export get_hypercube_vertices
+export vertices_to_matrix
+export maculate_points_in_range
+export co_immaculate_points_in_range
+export is_difference_coimmaculate
+export is_exceptional
+export is_exceptional_extendable
+export generate_exceptional_sequences
+
+export get_canonical_base
+export get_remainder
+export get_pairwise_canonical_signatures
+export count_canonical_key_occurrences
+export filter_canonical_keys_by_occurrence
+export map_keys_to_cluster_indices
+export get_union_of_all_index_sets
+export generate_symbolic_general_classes
+export find_configurations_of_mes
+
 export calculate_augmentation_on_surface
+export calculate_all_augmentations_on_surface
 export calculate_helixing
 export calculate_all_helixing
 export calculate_dualizing
@@ -174,7 +205,25 @@ export plot_infection_procedure
 ########################################
 ########################################
 include("toolbox_sympy.jl")
-# add function if it works when pushing on github
+
+export calculate_cartier_data
+export evaluate_cartier_data
+export pullback_divisor_of_blowup
+export unify_sequence
+export calculate_exceptional_sequences_modulo_helixing
+export calculate_exceptional_sequences_modulo_dualizing
+export are_flippings_exceptional
+export find_parameter
+export substitute_sequence
+export substitute_configuration
+export find_sequence_in_configurations
+export find_configurations
+export check_single_configurations
+export check_single_configurations_vector
+
+export create_symbolic_vector
+export create_mapper
+export calculate_exceptional_sequences_after_blowup
 
 
 end

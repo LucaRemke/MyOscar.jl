@@ -97,9 +97,9 @@ julia> transform_rayvector(coefficients(td))
 ```
 """
 function transform_rayvector(R::Any)
-    vect = Int64[]
+    vect = Int[]
     for j in eachindex(R)
-        entry = Int64(R[j])
+        entry = Int(R[j])
         push!(vect,entry)
     end
     
@@ -163,13 +163,29 @@ julia> transform_abelian_group_element(Kh1)
 ```
 """
 function transform_abelian_group_element(g::FinGenAbGroupElem)
-    vect = Int64[]
+    vect = Int[]
     for j in 1:rank(parent(g))
-        entry = Int64(g[j])
+        entry = Int(g[j])
         push!(vect,entry)
     end
     
     return vect
+end
+
+
+function multiply_nested_vectors_map(M::Matrix{Int}, L::Vector{Vector{Vector{Int}}})
+    # Map over the outermost layer (L)
+    return map(L) do outer_vector_of_vectors
+        
+        # Map over the intermediate layer (Vector{Vector{Int}})
+        return map(outer_vector_of_vectors) do inner_vector_of_vectors
+            
+            # Map over the innermost layer (Vector{Int}) and apply the multiplication (M * v)
+            # Broadcasting (M * .) is used here to apply the matrix multiplication 
+            # to every vector v inside the innermost collection.
+            return M * inner_vector_of_vectors
+        end
+    end
 end
 
 
@@ -224,7 +240,7 @@ function sort_points_clockwise(points::Vector{<:AbstractVector{<:Real}})
     cx = sum(p[1] for p in points) / n
     cy = sum(p[2] for p in points) / n
 
-    angles = Vector{Float64}(undef, n)
+    angles = Vector{Float}(undef, n)
     for i in 1:n
         p = points[i]
         angles[i] = atan(p[2] - cy, p[1] - cx)
@@ -235,6 +251,33 @@ function sort_points_clockwise(points::Vector{<:AbstractVector{<:Real}})
     
     return sorted_points
 end
+
+
+########################################
+# MISCELLANEOUS
+########################################
+
+function nesting_depth(v)
+    depth = 0
+    while v isa AbstractVector && !isempty(v)
+        depth += 1
+        v = first(v)
+    end
+    return depth
+end
+
+function transition_matrix(B::AbstractVector, C::AbstractVector)
+    B_matrix = hcat(B...)
+    C_matrix = hcat(C...)
+    
+    # 2. Calculation using left-division (C \ B)
+    # This solves the system C * P = B for P, which is P_C <- B.
+    # This is equivalent to inv(C) * B, but is numerically more stable and faster.
+    P_C_to_B = C_matrix \ B_matrix
+    
+    return Int.(P_C_to_B)
+end
+
 
 
 ########################################

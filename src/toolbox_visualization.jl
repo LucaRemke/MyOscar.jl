@@ -902,6 +902,7 @@ function plot_infection_step_2D(
     base_change::Union{AbstractMatrix, Nothing}=nothing,
     plot_size =(300, 300),
     grid_size::NTuple{4, Int}=(-5,5,-5,5),
+    epsilon::Float64=0.2,
     plot_title::String="",
     legend_position=nothing,
     old_color=:black,
@@ -915,7 +916,13 @@ function plot_infection_step_2D(
     # -------------------------
     
     # --- Grid Parameters ---
-    x_min, x_max, y_min, y_max = grid_size
+    x_min_grid, x_max_grid, y_min_grid, y_max_grid = grid_size
+    
+    # Apply epsilon padding to plotting limits
+    x_min_lim = x_min_grid - epsilon
+    x_max_lim = x_max_grid + epsilon
+    y_min_lim = y_min_grid - epsilon
+    y_max_lim = y_max_grid + epsilon
     # -------------------------
 
     # ... (Calculation of sets and coordinates remains unchanged) ...
@@ -943,10 +950,10 @@ function plot_infection_step_2D(
         title=plot_title,
         xlabel=nothing,
         ylabel=nothing,
-        xlims=(x_min, x_max),
-        ylims=(y_min, y_max),
-        xticks=x_min:1:x_max,
-        yticks=y_min:1:y_max,
+        xlims=(x_min_lim, x_max_lim),
+        ylims=(y_min_lim, y_max_lim),
+        xticks=x_min_grid:1:x_max_grid, 
+        yticks=y_min_grid:1:y_max_grid,
         grid=true,
         aspect_ratio=:equal
     )
@@ -994,6 +1001,7 @@ function plot_infection_procedure(
         base_change::Union{AbstractMatrix, Nothing}=nothing,
         plot_size = (400, 400),
         grid_size::NTuple{4, Int}=(-5, 5, -5, 5), # Uses the updated NTuple{4, Int} grid size
+        epsilon::Float64=0.2,
         plot_title::String="nothing",
         legend_position=nothing,
         old_color=:black,
@@ -1024,6 +1032,7 @@ function plot_infection_procedure(
             base_change=base_change,
             plot_size=plot_size,
             grid_size=grid_size,
+            epsilon=epsilon,
             plot_title=current_title,
             legend_position=legend_position,
             old_color=old_color,
